@@ -2402,3 +2402,152 @@ textarea{
     font-size:10.5px!important;
   }
 }
+
+/* Fixed mobile/tablet app headers: OFMS menu + notification bar stay together */
+@media(max-width:1180px){
+  #appView:not(.hidden){
+    --mobile-menu-height:64px;
+    --mobile-topbar-height:62px;
+    padding-top:calc(var(--mobile-menu-height) + var(--mobile-topbar-height))!important;
+  }
+  #appView:not(.hidden) .sidebar{
+    position:fixed!important;
+    top:0!important;
+    left:0!important;
+    right:0!important;
+    bottom:auto!important;
+    height:var(--mobile-menu-height)!important;
+    min-height:var(--mobile-menu-height)!important;
+    z-index:120!important;
+    display:flex!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    padding:8px max(12px, env(safe-area-inset-right)) 8px max(12px, env(safe-area-inset-left))!important;
+    overflow:hidden!important;
+    border-bottom:1px solid rgba(255,255,255,.12)!important;
+    box-shadow:0 12px 30px rgba(15,23,42,.18)!important;
+  }
+  #appView:not(.hidden) .brand-card{
+    display:flex!important;
+    flex:0 0 auto!important;
+  }
+  #appView:not(.hidden) .sidebar nav{
+    display:flex!important;
+    flex:1 1 auto!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    gap:8px!important;
+    min-width:0!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  #appView:not(.hidden) .sidebar nav::-webkit-scrollbar{
+    display:none;
+  }
+  #appView:not(.hidden) .nav{
+    flex:0 0 auto!important;
+    height:42px!important;
+    min-height:42px!important;
+    min-width:max-content!important;
+    white-space:nowrap!important;
+  }
+  #appView:not(.hidden) .topbar{
+    position:fixed!important;
+    top:var(--mobile-menu-height)!important;
+    left:0!important;
+    right:0!important;
+    height:var(--mobile-topbar-height)!important;
+    min-height:var(--mobile-topbar-height)!important;
+    z-index:110!important;
+    display:flex!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    padding:8px max(14px, env(safe-area-inset-right)) 8px max(14px, env(safe-area-inset-left))!important;
+    overflow:hidden!important;
+    box-shadow:0 8px 24px rgba(15,23,42,.08)!important;
+  }
+  #appView:not(.hidden) .main-area{
+    margin-left:0!important;
+    width:100%!important;
+  }
+  #appView:not(.hidden) .notif-panel{
+    position:fixed!important;
+    top:calc(var(--mobile-menu-height) + var(--mobile-topbar-height) + 8px)!important;
+    right:12px!important;
+    left:auto!important;
+    width:min(360px, calc(100vw - 24px))!important;
+  }
+}
+
+@media(max-width:700px){
+  #appView:not(.hidden){
+    --mobile-menu-height:58px;
+    --mobile-topbar-height:58px;
+    padding-top:calc(var(--mobile-menu-height) + var(--mobile-topbar-height))!important;
+    padding-bottom:calc(12px + env(safe-area-inset-bottom))!important;
+  }
+  #appView:not(.hidden) .sidebar{
+    height:var(--mobile-menu-height)!important;
+    min-height:var(--mobile-menu-height)!important;
+    padding-top:7px!important;
+    padding-bottom:7px!important;
+  }
+  #appView:not(.hidden) .brand-card{
+    min-width:112px!important;
+    max-width:112px!important;
+    height:44px!important;
+    padding:6px 8px!important;
+  }
+  #appView:not(.hidden) .brand-card img{
+    width:32px!important;
+    height:32px!important;
+  }
+  #appView:not(.hidden) .brand-card strong{
+    font-size:14px!important;
+  }
+  #appView:not(.hidden) .brand-card span{
+    display:none!important;
+  }
+  #appView:not(.hidden) .nav{
+    height:40px!important;
+    min-height:40px!important;
+    min-width:max-content!important;
+    padding:0 11px!important;
+    font-size:11px!important;
+  }
+  #appView:not(.hidden) .topbar{
+    top:var(--mobile-menu-height)!important;
+    height:var(--mobile-topbar-height)!important;
+    min-height:var(--mobile-topbar-height)!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto!important;
+    gap:8px!important;
+  }
+  #appView:not(.hidden) .top-actions{
+    justify-content:flex-end!important;
+  }
+  #appView:not(.hidden) .notif-panel{
+    top:calc(var(--mobile-menu-height) + var(--mobile-topbar-height) + 8px)!important;
+    left:12px!important;
+    right:12px!important;
+    width:auto!important;
+  }
+}
+
+@media(max-width:430px) and (orientation:portrait){
+  #appView:not(.hidden){
+    --mobile-menu-height:56px;
+    --mobile-topbar-height:56px;
+  }
+  #appView:not(.hidden) .brand-card{
+    min-width:98px!important;
+    max-width:98px!important;
+  }
+  #appView:not(.hidden) .nav{
+    font-size:10px!important;
+    padding:0 9px!important;
+  }
+}
