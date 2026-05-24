@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OFMS | Office of the Adjutant Feedback Monitoring System</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div id="toast" class="toast hidden"></div>
+
+  <main id="authView" class="auth-shell">
+    <div class="auth-bg-orb orb-one"></div>
+    <div class="auth-bg-orb orb-two"></div>
+    <section class="auth-card">
+      <div class="auth-brand">
+        <img src="assets/ooa_logo.png" alt="Office of the Adjutant logo" />
+        <div>
+          <h1>OFMS</h1>
+          <p>Office of the Adjutant Feedback Monitoring System</p>
+        </div>
+      </div>
+
+      <form id="loginForm" class="auth-form active">
+        <div class="form-ribbon"><span>▣ Personnel Login</span><small>• Secured</small></div>
+        <h2>Welcome back</h2>
+        <p class="muted">Sign in to open the survey analytics workspace.</p>
+        <label>Username<input id="loginUsername" autocomplete="username" value="admin" /></label>
+        <label>Password<input id="loginPassword" type="password" autocomplete="current-password" value="admin123" /></label>
+        <button class="primary" type="submit">Login to OFMS</button>
+        <p class="switch-text">No account yet? <button type="button" data-auth="create">Create Account</button></p>
+      </form>
+
+      <form id="createForm" class="auth-form">
+        <div class="form-ribbon"><span>＋ Create Account</span><small>• Supabase</small></div>
+        <h2>Create account</h2>
+        <p class="muted">Create an OFMS account saved to the connected Supabase database.</p>
+        <label>Username<input id="createUsername" autocomplete="username" /></label>
+        <label>Password<input id="createPassword" type="password" autocomplete="new-password" /></label>
+        <label>Confirm Password<input id="createConfirm" type="password" autocomplete="new-password" /></label>
+        <button class="primary" type="submit">Create Account</button>
+        <p class="switch-text">Already have an account? <button type="button" data-auth="login">Login</button></p>
+      </form>
+    </section>
+  </main>
+
+  <main id="appView" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="brand-card">
+        <img src="assets/ooa_logo.png" alt="OADJ logo" />
+        <div><strong>OFMS</strong><span>Feedback Monitoring</span></div>
+      </div>
+      <p class="menu-label">MENU</p>
+      <nav>
+        <button class="nav active" data-page="dashboard">Dashboard</button>
+        <button class="nav" data-page="import">Import Excel</button>
+        <button class="nav" data-page="reports">Reports</button>
+        <button class="nav" data-page="logs">System Logs</button>
+        <button class="nav" data-page="settings">Settings</button>
+        <button class="nav danger" id="logoutBtn">Logout</button>
+      </nav>
+      <div class="sidebar-user">
+        <div id="avatar" class="avatar">AD</div>
+        <div><strong id="sideName">Administrator</strong><span id="sideOffice">Office of the Adjutant</span><span id="sideRole">Administrator</span></div>
+      </div>
+      <small class="side-copy">@2026 Office of the Adjutant, Philippine Army Feedback Monitoring System</small>
+    </aside>
+
+    <section class="main-area">
+      <header class="topbar">
+        <div class="office-lockup">
+          <img src="assets/header_ooa_logo.png" alt="OADJ logo" />
+          <div><strong>Office of the Adjutant, Philippine Army</strong><span>Official dashboard workspace</span></div>
+        </div>
+        <div class="top-actions">
+          <button class="notif-btn" id="notifBtn" title="Notifications">
+            <span>🔔</span><em id="notifBadge">0</em>
+          </button>
+          <div class="top-user"><strong id="topName">Administrator</strong><span id="topRole">Administrator • Office of the Adjutant</span><span id="clockText"></span></div>
+          <div id="notifPanel" class="notif-panel hidden">
+            <div class="notif-head"><strong>Notifications</strong><button id="markReadBtn" type="button">Mark read</button></div>
+            <div id="notifList" class="notif-list"></div>
+          </div>
+        </div>
+      </header>
+
+      <section id="dashboard" class="page active-page dashboard-v2">
+        <div class="dashboard-hero-v2">
+          <div class="hero-copy-v2">
+            <span class="eyebrow-v2">OFMS Survey Analytics</span>
+            <h2>Feedback Monitoring Dashboard</h2>
+            <p>Visual overview of Client Satisfaction Measurement and Job Satisfaction survey results, respondent profile, trends, and priority survey areas.</p>
+          </div>
+          <div class="hero-actions-v2">
+            <button class="ghost" id="refreshDashBtn">Refresh Dashboard</button>
+          </div>
+        </div>
+
+        <div class="kpi-strip-v2">
+          <article class="kpi-card-v2"><span>Total Surveys</span><strong id="metricReports">0</strong><small>Saved reports</small></article>
+          <article class="kpi-card-v2"><span>Total Responses</span><strong id="metricResponses">0</strong><small>Valid responses</small></article>
+          <article class="kpi-card-v2 kpi-blue"><span>CSM Mean</span><strong id="metricCsmMean">0.00</strong><small>Client score / 5.00</small></article>
+          <article class="kpi-card-v2 kpi-green"><span>CSM Satisfaction</span><strong id="metricCsmSatisfaction">0%</strong><small>Client percentage</small></article>
+          <article class="kpi-card-v2 kpi-purple"><span>Job Mean</span><strong id="metricJobMean">0.00</strong><small>Work score / 5.00</small></article>
+          <article class="kpi-card-v2 kpi-orange"><span>Job Satisfaction</span><strong id="metricJobSatisfaction">0%</strong><small>Work percentage</small></article>
+        </div>
+
+        <div class="dashboard-main-grid-v2">
+          <article class="visual-card-v2 wide">
+            <div class="card-title-v2">
+              <div><h3>Survey Trend Monitoring</h3><p id="trendSub">Smooth trend graph based on generated reports.</p></div>
+              <div class="trend-filters"><button class="chip active" data-trend="all">All</button><button class="chip" data-trend="today">Today</button><button class="chip" data-trend="yesterday">Yesterday</button><button class="chip" data-trend="week">This Week</button><button class="chip" data-trend="month">This Month</button></div>
+            </div>
+            <div id="trendChart" class="bars trend-v2"></div>
+          </article>
+
+          <article class="visual-card-v2 latest-card-v2">
+            <div class="card-title-v2"><div><h3>Latest Survey</h3><p>Current report context</p></div></div>
+            <div class="latest-chip-v2">Most Recent Report</div>
+            <div class="latest-ring-v2">
+              <div>
+                <span>Survey Type</span>
+                <strong id="metricLatestType">—</strong>
+                <small id="metricLatestTitle">No survey report available yet.</small>
+              </div>
+            </div>
+            <div class="coverage-pill-v2"><span>Coverage</span><strong id="metricCoverage">—</strong></div>
+          </article>
+
+          <article class="visual-card-v2"><div class="card-title-v2"><div><h3>CSM vs Job Mean</h3><p>Latest weighted mean</p></div></div><div id="meanCompareChart" class="mini-graph"></div></article>
+          <article class="visual-card-v2"><div class="card-title-v2"><div><h3>CSM vs Job Satisfaction</h3><p>Percentage comparison</p></div></div><div id="satisfactionCompareChart" class="mini-graph"></div></article>
+          <article class="visual-card-v2"><div class="card-title-v2"><div><h3>Response Volume</h3><p>Responses by survey type</p></div></div><div id="responseTypeChart" class="mini-graph"></div></article>
+          <article class="visual-card-v2"><div class="card-title-v2"><div><h3>Latest Survey Areas</h3><p>Top latest survey areas</p></div></div><div id="latestAreaSnapshotChart" class="mini-graph"></div></article>
+        </div>
+
+        <div class="dashboard-split-v2">
+          <article class="visual-card-v2 profile-card-v2">
+            <div class="card-title-v2"><div><h3>Gender Distribution</h3><p id="genderSub">Actual Sex/Gender data when available</p></div></div>
+            <div id="genderChart" class="donut"></div><div id="genderLegend" class="legend"></div>
+          </article>
+          <article class="visual-card-v2 profile-card-v2">
+            <div class="card-title-v2"><div><h3>Organic vs Detached Service (D.S.)</h3><p>Based on Assignment Status entries.</p></div></div>
+            <div id="statusChart" class="donut"></div><div id="statusLegend" class="legend"></div>
+          </article>
+        </div>
+
+        <div class="dashboard-breakdown-v2">
+          <article class="visual-card-v2"><div class="card-title-v2"><div><h3>Latest CSM Survey Areas</h3><p>Top-rated client satisfaction areas</p></div></div><div id="latestCsmAreasChart" class="mini-graph"></div></article>
+          <article class="visual-card-v2"><div class="card-title-v2"><div><h3>Latest Job Survey Areas</h3><p>Top-rated work experience areas</p></div></div><div id="latestJobAreasChart" class="mini-graph"></div></article>
+          <article class="visual-card-v2"><div class="card-title-v2"><div><h3>Latest Profile Breakdown</h3><p>Most visible respondent grouping</p></div></div><div id="latestProfileGraph" class="mini-graph"></div></article>
+        </div>
+
+        <footer class="footer"><img src="assets/rtu_logo.png"><img src="assets/ics_logo.png"><span>@2026 Office of the Adjutant, Philippine Army Feedback Monitoring System | Developed by the students of Institute of Computer Studies of Rizal Technological University — Frinz Euan Esguerra, Jayvette Cater, Danlie Dox Finez, Kurt Brian Garrovillas, Marvin Luis Alfonso Guevarra, Rhenz Stephen Respondo | For the Office of the Adjutant, Philippine Army.</span></footer>
+      </section>
+
+      <section id="import" class="page">
+        <div class="page-head"><div><h2>Import Excel</h2><p>Upload CSM or Job Satisfaction Excel responses, then generate a browser report.</p></div></div>
+        <div class="panel upload-panel">
+          <label class="file-drop"><input type="file" id="excelFile" accept=".xlsx,.xls,.csv" /><span>Choose Excel or CSV file</span><small>Uses SheetJS CDN for .xlsx parsing. CSV works directly.</small></label>
+          <div class="form-grid">
+            <label>Report Title<input id="reportTitle" placeholder="Auto-filled after import" /></label>
+            <label>Survey Type<select id="surveyType"><option value="auto">Auto Detect</option><option value="csm">Client Satisfaction Measurement</option><option value="job">Job Satisfaction and Work Experience</option></select></label>
+          </div>
+          <div id="preview" class="preview muted">No file imported yet.</div>
+          <button class="primary" id="generateBtn">Generate Report</button>
+        </div>
+        <footer class="footer"><img src="assets/rtu_logo.png"><img src="assets/ics_logo.png"><span>@2026 Office of the Adjutant, Philippine Army Feedback Monitoring System | Developed by the students of Institute of Computer Studies of Rizal Technological University — Frinz Euan Esguerra, Jayvette Cater, Danlie Dox Finez, Kurt Brian Garrovillas, Marvin Luis Alfonso Guevarra, Rhenz Stephen Respondo | For the Office of the Adjutant, Philippine Army.</span></footer>
+      </section>
+
+      <section id="reports" class="page">
+        <div class="page-head"><div><h2>Reports</h2><p>Generated survey reports stored in Supabase.</p></div><div class="head-actions"><button class="ghost" id="exportReportsBtn">Export Summary CSV</button><button class="ghost" id="clearReportsBtn">Clear Reports</button></div></div>
+        <div class="report-toolbar"><input id="reportSearch" placeholder="Search report title, type, date, or result..." /></div>
+        <div id="reportsList" class="report-list"></div>
+        <footer class="footer"><img src="assets/rtu_logo.png"><img src="assets/ics_logo.png"><span>@2026 Office of the Adjutant, Philippine Army Feedback Monitoring System | Developed by the students of Institute of Computer Studies of Rizal Technological University — Frinz Euan Esguerra, Jayvette Cater, Danlie Dox Finez, Kurt Brian Garrovillas, Marvin Luis Alfonso Guevarra, Rhenz Stephen Respondo | For the Office of the Adjutant, Philippine Army.</span></footer>
+      </section>
+
+      <section id="logs" class="page">
+        <div class="page-head"><div><h2>System Logs</h2><p>Activity log records saved in Supabase.</p></div></div>
+        <div class="panel"><table><thead><tr><th>Date/Time</th><th>User</th><th>Action</th><th>Details</th></tr></thead><tbody id="logRows"></tbody></table></div>
+        <footer class="footer"><img src="assets/rtu_logo.png"><img src="assets/ics_logo.png"><span>@2026 Office of the Adjutant, Philippine Army Feedback Monitoring System | Developed by the students of Institute of Computer Studies of Rizal Technological University — Frinz Euan Esguerra, Jayvette Cater, Danlie Dox Finez, Kurt Brian Garrovillas, Marvin Luis Alfonso Guevarra, Rhenz Stephen Respondo | For the Office of the Adjutant, Philippine Army.</span></footer>
+      </section>
+
+      <section id="settings" class="page settings-page">
+        <div class="page-head"><div><h2>Settings</h2><p>Account information, system details, and security settings.</p></div></div>
+        <div class="settings-layout">
+          <div class="settings-left">
+            <form id="profileForm" class="panel settings-card account-card">
+              <div class="section-title"><span>👤</span><h3>Account Information</h3></div>
+              <div class="form-grid settings-form-grid">
+                <label>Display Name<input id="displayName" /></label>
+                <label>Office<input id="officeName" /></label>
+                <label>Office Position / Role<input id="rolePosition" /></label>
+                <label>Username<input id="usernameReadonly" disabled /></label>
+              </div>
+              <div class="settings-actions"><button class="primary">Save Account Information</button></div>
+            </form>
+
+            <form id="passwordForm" class="panel settings-card password-card">
+              <div class="section-title"><span>🔐</span><h3>Change / Reset Password</h3></div>
+              <div class="form-grid settings-form-grid">
+                <label>Current Password<input type="password" id="currentPassword" /></label>
+                <label>New Password<input type="password" id="newPassword" /></label>
+                <label>Confirm Password<input type="password" id="confirmPassword" /></label>
+              </div>
+              <div class="settings-actions"><button class="primary">Update Password</button></div>
+            </form>
+          </div>
+
+          <div class="settings-right">
+            <div class="panel settings-card about-ofms-card">
+              <div class="section-title"><span>ⓘ</span><h3>About OFMS</h3></div>
+              <div class="settings-table">
+                <div><span>System Name</span><strong>OFMS</strong></div>
+                <div><span>Full Name</span><strong>Office of the Adjutant Feedback Monitoring System</strong></div>
+                <div><span>Organization</span><strong>Office of the Adjutant, Philippine Army</strong></div>
+                <div><span>Version</span><strong>2026.1.0</strong></div>
+                <div><span>Classification</span><strong>For Internal Use Only</strong></div>
+              </div>
+            </div>
+
+            <div class="panel settings-card dev-team-card">
+              <div class="section-title"><span>&lt;/&gt;</span><h3>Development Team</h3></div>
+              <div class="team-list">
+                <div><b>1</b><span>Frinz Euan Esguerra</span></div>
+                <div><b>2</b><span>Jayvette Cater</span></div>
+                <div><b>3</b><span>Danlie Dox Finez</span></div>
+                <div><b>4</b><span>Kurt Brian Garrovillas</span></div>
+                <div><b>5</b><span>Marvin Luis Alfonso Guevarra</span></div>
+                <div><b>6</b><span>Rhenz Stephen Respondo</span></div>
+              </div>
+              <div class="settings-mini-footer">@2026 Office of the Adjutant, Philippine Army Feedback Monitoring System<br>All Rights Reserved · For Internal Use Only</div>
+            </div>
+          </div>
+        </div>
+        <footer class="footer"><img src="assets/rtu_logo.png"><img src="assets/ics_logo.png"><span>@2026 Office of the Adjutant, Philippine Army Feedback Monitoring System | Developed by the students of Institute of Computer Studies of Rizal Technological University — Frinz Euan Esguerra, Jayvette Cater, Danlie Dox Finez, Kurt Brian Garrovillas, Marvin Luis Alfonso Guevarra, Rhenz Stephen Respondo | For the Office of the Adjutant, Philippine Army.</span></footer>
+      </section>
+    </section>
+  </main>
+
+  <div id="signatoryModal" class="modal hidden">
+    <div class="modal-card signatory-card">
+      <button class="close" id="closeSignatoryModal">×</button>
+      <h2>PDF SIGNATORIES</h2>
+      <p class="muted">Enter the signatories below, then click Save & Print PDF to continue the report export.</p>
+      <div class="signatory-form panel">
+        <label>Prepared by name<input id="preparedName" /></label>
+        <label>Prepared by designation / office<input id="preparedOffice" /></label>
+        <label>Certified by name<input id="certifiedName" /></label>
+        <label>Certified by designation / office<input id="certifiedOffice" /></label>
+      </div>
+      <div class="prompt-note">The PDF will ask where to save, then it will open automatically for printing or review.</div>
+      <div class="modal-actions"><button class="primary" id="savePrintPdfBtn">Save & Print PDF</button><button class="ghost" id="cancelSignatoryBtn">Cancel</button></div>
+    </div>
+  </div>
+
+
+  <div id="notifPreviewModal" class="modal hidden">
+    <div class="modal-card notif-preview-card">
+      <button class="close" id="closeNotifPreview">×</button>
+      <h2 id="notifPreviewTitle">Notification</h2>
+      <p id="notifPreviewTime" class="muted"></p>
+      <div id="notifPreviewBody" class="prompt-note"></div>
+      <div class="modal-actions"><button class="primary hidden" id="notifOpenReportBtn">Open Report</button><button class="ghost" id="notifPreviewCloseBtn">Close</button></div>
+    </div>
+  </div>
+
+  <div id="reportModal" class="modal hidden"><div class="modal-card report-modal-card"><button class="close" id="closeModal">×</button><div id="reportContent"></div><button class="primary" id="printReportBtn">Print / Save PDF</button></div></div>
+  <script src="app.js"></script>
+</body>
+</html>
