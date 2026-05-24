@@ -763,8 +763,17 @@ function reportDoc(r){
     <div class="pdf-foot"><strong>HONOR. PATRIOTISM. DUTY.</strong></div>
   </article>`;
 }
-window.openReport = (id)=>{ const r=state.reports.find(x=>String(x.id)===String(id)); if(!r) return; try{ $('#reportContent').innerHTML = reportDoc(r); $('#reportModal').classList.remove('hidden'); }catch(err){ console.error('Report preview error:', err); toast('Report preview failed. Please regenerate the report.'); } };
-$('#closeModal').onclick=()=>$('#reportModal').classList.add('hidden');
+window.openReport = (id)=>{ const r=state.reports.find(x=>String(x.id)===String(id)); if(!r) return; try{ $('#reportContent').innerHTML = reportDoc(r); document.body.classList.add('pdf-preview-open'); $('#reportModal').classList.remove('hidden'); }catch(err){ console.error('Report preview error:', err); toast('Report preview failed. Please regenerate the report.'); } };
+function closeReportModal(){
+  $('#reportModal').classList.add('hidden');
+  document.body.classList.remove('pdf-preview-open');
+}
+$('#closeModal').onclick=closeReportModal;
+const reportModalEl = $('#reportModal');
+if(reportModalEl){
+  reportModalEl.addEventListener('click', (e)=>{ if(e.target === reportModalEl) closeReportModal(); });
+}
+document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && !$('#reportModal')?.classList.contains('hidden')) closeReportModal(); });
 $('#printReportBtn').onclick=()=>printCurrentReport();
 
 $('#profileForm').onsubmit=async e=>{
@@ -2034,6 +2043,7 @@ window.openReport = (id)=>{
     `;
     $('#reportModal').classList.remove('hidden');
     $('#reportModal').classList.add('preview-polished','preview-readable');
+    document.body.classList.add('pdf-preview-open');
   }catch(err){
     console.error('Report preview error:', err);
     toast('Report preview failed. Please regenerate the report.');
