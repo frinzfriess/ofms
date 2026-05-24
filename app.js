@@ -1823,14 +1823,30 @@ function reportDoc(r){
   printCurrentReport=function(){
     const title=document.title;
     const currentReport = state.reports.find(x=>String(x.id)===String(currentPrintReportId || pendingPrintReportId || ''));
-    try{
-      document.title=pdfDocumentTitle(currentReport);
-      document.body.classList.add('printing-report');
-      setTimeout(()=>{ window.print(); setTimeout(()=>{ document.body.classList.remove('printing-report'); document.title=title; }, 900); }, 180);
-    }catch(err){
-      console.error('PDF print failed:',err);
+    let cleaned=false;
+    const cleanup=()=>{
+      if(cleaned) return;
+      cleaned=true;
       document.body.classList.remove('printing-report');
       document.title=title;
+      window.removeEventListener('afterprint', cleanup);
+    };
+    try{
+      document.title=pdfDocumentTitle(currentReport);
+      $('#reportModal')?.classList.remove('hidden');
+      document.body.classList.add('printing-report');
+      window.addEventListener('afterprint', cleanup, {once:true});
+      requestAnimationFrame(()=>{
+        $('.preview-scroll-paper')?.scrollTo?.(0, 0);
+        setTimeout(()=>{
+          window.focus();
+          window.print();
+          setTimeout(cleanup, 8000);
+        }, 180);
+      });
+    }catch(err){
+      console.error('PDF print failed:',err);
+      cleanup();
       if(typeof oldPrint==='function') oldPrint();
     }
   };

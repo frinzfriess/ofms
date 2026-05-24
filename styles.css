@@ -3827,3 +3827,125 @@ body.pdf-preview-open #reportModal .preview-scroll-paper .ofms-pdf-page{
     overflow:hidden!important;
   }
 }
+
+/* Final print-all-pages patch: disable preview clipping while printing */
+@media print{
+  html,
+  body,
+  body.pdf-preview-open,
+  body.printing-report{
+    width:210mm!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:visible!important;
+    background:#fff!important;
+  }
+  body.printing-report > *:not(#reportModal){
+    display:none!important;
+  }
+  body.printing-report #reportModal,
+  body.pdf-preview-open.printing-report #reportModal,
+  body.pdf-preview-open #reportModal{
+    position:static!important;
+    inset:auto!important;
+    display:block!important;
+    width:210mm!important;
+    min-width:210mm!important;
+    max-width:210mm!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:visible!important;
+    background:#fff!important;
+    touch-action:auto!important;
+  }
+  body.printing-report #reportModal .modal-card,
+  body.printing-report #reportModal .report-modal-card,
+  body.pdf-preview-open.printing-report #reportModal .modal-card,
+  body.pdf-preview-open.printing-report #reportModal .report-modal-card{
+    display:block!important;
+    width:210mm!important;
+    min-width:210mm!important;
+    max-width:210mm!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:visible!important;
+    border:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    background:#fff!important;
+  }
+  body.printing-report #reportContent,
+  body.pdf-preview-open.printing-report #reportModal #reportContent,
+  body.printing-report #reportModal.preview-readable #reportContent,
+  body.printing-report #reportModal.preview-polished #reportContent{
+    display:block!important;
+    width:210mm!important;
+    min-width:210mm!important;
+    max-width:210mm!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:visible!important;
+    background:#fff!important;
+  }
+  body.printing-report .preview-scroll-paper,
+  body.pdf-preview-open.printing-report #reportModal .preview-scroll-paper{
+    display:block!important;
+    width:210mm!important;
+    min-width:210mm!important;
+    max-width:210mm!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:visible!important;
+    background:#fff!important;
+    -webkit-overflow-scrolling:auto!important;
+  }
+  body.printing-report .preview-titlebar,
+  body.printing-report .preview-mini-print,
+  body.printing-report #printReportBtn,
+  body.printing-report #closeModal,
+  body.printing-report .close,
+  body.printing-report .modal-card:before{
+    display:none!important;
+  }
+  body.printing-report .report-doc.ofms-a4-pdf,
+  body.printing-report .report-doc.exact-pdf{
+    display:block!important;
+    width:210mm!important;
+    min-width:210mm!important;
+    max-width:210mm!important;
+    height:auto!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:visible!important;
+    background:#fff!important;
+  }
+  body.printing-report .report-doc.ofms-a4-pdf .ofms-pdf-page,
+  body.printing-report .report-doc.exact-pdf .ofms-pdf-page{
+    break-after:page!important;
+    page-break-after:always!important;
+    page-break-inside:avoid!important;
+    box-shadow:none!important;
+    border:0!important;
+  }
+  body.printing-report .report-doc.ofms-a4-pdf .ofms-pdf-page:last-child,
+  body.printing-report .report-doc.exact-pdf .ofms-pdf-page:last-child{
+    break-after:auto!important;
+    page-break-after:auto!important;
+  }
+}
