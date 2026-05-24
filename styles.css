@@ -1751,3 +1751,277 @@ body.printing-report #reportContent{display:block!important;margin:0 auto!import
     grid-template-columns:1fr!important;
   }
 }
+
+/* Device compatibility hardening: iPad, Android tablets, and iPhone safe areas */
+html,
+body{
+  max-width:100%;
+  -webkit-text-size-adjust:100%;
+}
+img,
+svg,
+canvas,
+video{
+  max-width:100%;
+}
+.app-shell,
+.main-area,
+.page,
+.panel,
+.visual-card-v2,
+.report-card,
+.modal-card{
+  min-width:0;
+}
+button,
+.nav,
+.chip,
+input,
+select{
+  touch-action:manipulation;
+}
+input,
+select,
+textarea{
+  font-size:16px;
+}
+
+@media(hover:none){
+  .visual-card-v2:hover,
+  .chart-card:hover,
+  .panel:hover,
+  .report-card:hover,
+  .feature-card:hover,
+  .ux-card:hover,
+  .primary:hover,
+  .ghost:hover,
+  .chip:hover,
+  .file-drop:hover{
+    transform:none!important;
+  }
+}
+
+@media(max-width:1180px) and (min-width:701px){
+  .app-shell{
+    min-height:100dvh!important;
+  }
+  .sidebar{
+    padding-left:max(14px, env(safe-area-inset-left))!important;
+    padding-right:max(14px, env(safe-area-inset-right))!important;
+  }
+  .topbar{
+    top:68px!important;
+  }
+  .dashboard-v2 .mini-bar-row{
+    grid-template-columns:minmax(110px,140px) 1fr 64px!important;
+  }
+}
+
+@media(max-width:900px) and (orientation:landscape){
+  .dashboard-hero-v2{
+    padding:18px 20px!important;
+  }
+  .hero-copy-v2 h2{
+    font-size:28px!important;
+  }
+  .visual-card-v2{
+    min-height:auto!important;
+  }
+  .dashboard-v2 .donut{
+    width:190px!important;
+    height:190px!important;
+  }
+}
+
+@media(max-width:700px){
+  html,
+  body{
+    width:100%;
+    overflow-x:hidden!important;
+  }
+  body{
+    min-height:100dvh;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  button,
+  .primary,
+  .ghost,
+  .chip,
+  .nav,
+  input,
+  select{
+    min-height:44px;
+  }
+  .app-shell{
+    min-height:100dvh!important;
+    padding-bottom:calc(78px + env(safe-area-inset-bottom))!important;
+  }
+  .sidebar{
+    position:fixed!important;
+    left:0!important;
+    right:0!important;
+    bottom:0!important;
+    top:auto!important;
+    z-index:90!important;
+    display:block!important;
+    width:100%!important;
+    padding:8px max(10px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left))!important;
+    border-top:1px solid rgba(255,255,255,.14)!important;
+    box-shadow:0 -18px 42px rgba(15,23,42,.22)!important;
+    background:rgba(7,18,37,.96)!important;
+    backdrop-filter:blur(22px) saturate(160%)!important;
+    -webkit-backdrop-filter:blur(22px) saturate(160%)!important;
+    overflow:visible!important;
+  }
+  .brand-card,
+  .menu-label,
+  .sidebar-user,
+  .side-copy{
+    display:none!important;
+  }
+  .sidebar nav{
+    display:flex!important;
+    flex-wrap:nowrap!important;
+    gap:8px!important;
+    width:100%!important;
+    overflow-x:auto!important;
+    overscroll-behavior-x:contain;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  .sidebar nav::-webkit-scrollbar{
+    display:none;
+  }
+  .nav{
+    flex:0 0 auto!important;
+    min-width:92px!important;
+    width:auto!important;
+    height:48px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    padding:0 12px!important;
+    white-space:nowrap!important;
+    font-size:12px!important;
+    line-height:1!important;
+    border-radius:14px!important;
+    background:rgba(255,255,255,.08)!important;
+  }
+  .nav.active{
+    background:linear-gradient(135deg,#007aff,#0a84ff)!important;
+  }
+  .nav.danger{
+    background:rgba(239,68,68,.14)!important;
+  }
+  .topbar{
+    position:sticky!important;
+    top:0!important;
+    z-index:40!important;
+    padding-left:max(14px, env(safe-area-inset-left))!important;
+    padding-right:max(14px, env(safe-area-inset-right))!important;
+  }
+  .office-lockup strong,
+  .top-user strong,
+  .page-head h2{
+    overflow-wrap:anywhere;
+  }
+  .notif-panel{
+    top:76px!important;
+    max-height:min(420px, calc(100dvh - 104px - env(safe-area-inset-bottom)))!important;
+    overflow:auto!important;
+  }
+  .page,
+  .dashboard-v2{
+    padding-left:max(12px, env(safe-area-inset-left))!important;
+    padding-right:max(12px, env(safe-area-inset-right))!important;
+  }
+  .page-head h2{
+    font-size:25px!important;
+    line-height:1.12!important;
+  }
+  .page-head p,
+  .report-card p,
+  .preview,
+  .muted{
+    font-size:13px!important;
+    line-height:1.45!important;
+  }
+  .head-actions,
+  .report-actions{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+  }
+  .head-actions button,
+  .report-actions button,
+  #generateBtn{
+    width:100%!important;
+  }
+  .panel,
+  .upload-panel,
+  .report-card,
+  .visual-card-v2,
+  .kpi-card-v2{
+    border-radius:18px!important;
+  }
+  .panel,
+  .upload-panel{
+    padding:16px!important;
+  }
+  .file-drop span,
+  .file-drop small{
+    overflow-wrap:anywhere;
+  }
+  .settings-table strong,
+  .team-list span{
+    overflow-wrap:anywhere;
+  }
+  .modal{
+    align-items:end!important;
+    padding:12px max(12px, env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left))!important;
+  }
+  .modal-card,
+  .signatory-card,
+  .notif-preview-card{
+    width:100%!important;
+    max-width:none!important;
+    max-height:calc(100dvh - 24px - env(safe-area-inset-bottom))!important;
+    border-radius:22px 22px 18px 18px!important;
+    overflow:auto!important;
+  }
+  #reportModal .modal-card{
+    align-items:stretch!important;
+  }
+  #reportContent{
+    overflow:auto!important;
+    justify-content:flex-start!important;
+  }
+  #reportModal .ofms-pdf-page,
+  #reportModal .pdf-page,
+  #reportModal .report-doc.exact-pdf{
+    transform-origin:top left;
+  }
+  .footer{
+    margin-bottom:4px!important;
+  }
+}
+
+@media(max-width:390px){
+  .nav{
+    min-width:84px!important;
+    padding:0 10px!important;
+    font-size:11px!important;
+  }
+  .hero-copy-v2 h2{
+    font-size:23px!important;
+  }
+  .latest-ring-v2 strong{
+    font-size:24px!important;
+  }
+  .dashboard-v2 .mini-bar-row{
+    font-size:12px!important;
+  }
+  .footer img{
+    width:22px!important;
+    height:22px!important;
+  }
+}
