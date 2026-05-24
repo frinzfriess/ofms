@@ -308,8 +308,21 @@ function renderNotifications(){
 const notifBtn = $('#notifBtn');
 const notifPanel = $('#notifPanel');
 if(notifBtn && notifPanel){
-  notifBtn.onclick = (e)=>{ e.stopPropagation(); renderNotifications(); notifPanel.classList.toggle('hidden'); };
+  let lastNotifTouch = 0;
+  const toggleNotifications = (e) => {
+    if(e.type === 'click' && Date.now() - lastNotifTouch < 650) return;
+    if(e.type === 'touchstart') lastNotifTouch = Date.now();
+    e.preventDefault();
+    e.stopPropagation();
+    renderNotifications();
+    notifPanel.classList.toggle('hidden');
+  };
+  notifBtn.onclick = toggleNotifications;
+  notifBtn.ontouchstart = toggleNotifications;
+  notifPanel.onclick = (e) => e.stopPropagation();
+  notifPanel.ontouchstart = (e) => e.stopPropagation();
   document.addEventListener('click', (e)=>{ if(!notifPanel.contains(e.target) && !notifBtn.contains(e.target)) notifPanel.classList.add('hidden'); });
+  document.addEventListener('touchstart', (e)=>{ if(!notifPanel.contains(e.target) && !notifBtn.contains(e.target)) notifPanel.classList.add('hidden'); }, { passive:true });
 }
 const markReadBtn=$('#markReadBtn');
 if(markReadBtn){ markReadBtn.onclick=()=>{ $('#notifBadge').style.display='none'; $('#notifPanel').classList.add('hidden'); toast('Notifications marked as read.'); }; }
@@ -809,6 +822,23 @@ const NOTIF_READ_KEY = 'ofms_notifications_last_read_v2';
 const NOTIF_READ_ITEM_KEY = 'ofms_notifications_read_items_v1';
 let pendingPrintReportId = null;
 let pdfSignatories = { preparedName:'', preparedOffice:'', certifiedName:'', certifiedOffice:'' };
+let currentPrintReportId = null;
+
+function cleanPdfFilePart(value){
+  return String(value || '')
+    .replace(/[\\/:*?"<>|]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+function pdfDocumentTitle(r){
+  if(!r) return 'OFMS Survey Report';
+  const typeTitle = r.type === 'job'
+    ? 'OFMS Job Satisfaction and Work Experience Survey Report'
+    : 'OFMS Client Satisfaction Measurement Survey Report';
+  const coverage = cleanPdfFilePart(coverageFromReport(r));
+  const date = new Date(r.created || Date.now()).toISOString().slice(0,10);
+  return [typeTitle, coverage, date].filter(Boolean).join(' - ');
+}
 
 function reportDateMs(r){ return new Date(r.created || r.uploaded_at || Date.now()).getTime(); }
 function latestReportByType(type){ return state.reports.filter(r=>r.type===type).sort((a,b)=>reportDateMs(b)-reportDateMs(a))[0] || null; }
@@ -1712,8 +1742,9 @@ function reportDoc(r){
   const oldPrint=printCurrentReport;
   printCurrentReport=function(){
     const title=document.title;
+    const currentReport = state.reports.find(x=>String(x.id)===String(currentPrintReportId || pendingPrintReportId || ''));
     try{
-      document.title='';
+      document.title=pdfDocumentTitle(currentReport);
       document.body.classList.add('printing-report');
       setTimeout(()=>{ window.print(); setTimeout(()=>{ document.body.classList.remove('printing-report'); document.title=title; }, 900); }, 180);
     }catch(err){
@@ -1989,11 +2020,12 @@ window.openReport = (id)=>{
   const r = state.reports.find(x => String(x.id) === String(id));
   if(!r) return;
   try{
+    currentPrintReportId = r.id;
     const content = $('#reportContent');
     content.innerHTML = `
       <div class="preview-titlebar">
         <div>
-          <strong>${escapeHtml(r.title)}</strong>
+          <strong>${escapeHtml(pdfDocumentTitle(r))}</strong>
           <span>${surveyLabel(r.type)} • ${r.responses} response(s) • ${r.mean.toFixed(2)}/5.00</span>
         </div>
         <button class="preview-mini-print" onclick="printCurrentReport()">Print / Save PDF</button>
@@ -2090,6 +2122,7 @@ function summaryCardsGraphOnly(r){
 }
 function reportDoc(r){
   const reportDate=new Date(r.created).toLocaleDateString('en-PH',{day:'2-digit',month:'long',year:'numeric'});
+  const pdfTitle = pdfDocumentTitle(r);
   const profileObj=r.type==='job'?r.years:(Object.keys(r.gender||{}).length?r.gender:r.customerType);
   const profileTitle=r.type==='job'?'Years in Service':'Respondent Profile Distribution';
   const secondaryTitle=r.type==='job'?'Assignment Status':'Service Distribution';
@@ -2101,7 +2134,7 @@ function reportDoc(r){
   pages.push(ofmsPage(`
     <div class="ofms-command-head"><b>HEADQUARTERS PHILIPPINE ARMY<br>OFFICE OF THE ADJUTANT<br>Fort Andres Bonifacio, Taguig City</b></div>
     <div class="ofms-memo-line"><span>OADJ</span><span>${reportDate}</span></div>
-    <p class="ofms-memo"><strong>SUBJECT:</strong> ${escapeHtml(r.title)}</p>
+    <p class="ofms-memo"><strong>SUBJECT:</strong> ${escapeHtml(pdfTitle)}</p>
     <p class="ofms-memo"><strong>TO:</strong> Adjutant, PA<br>Post<br>Attn: Admin</p>
     <h2>1. Executive Summary</h2>${summaryCardsGraphOnly(r)}${reportFocusNote(r)}
     <h2>2. ${r.type==='job'?'Summative Job Satisfaction Interpretation':'Summative Client Satisfaction Interpretation'}</h2>

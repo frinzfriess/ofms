@@ -3039,3 +3039,306 @@ textarea{
     font-size:13px!important;
   }
 }
+
+/* Notification reliability and mobile orientation placement */
+@media(max-width:1180px){
+  #appView:not(.hidden) .topbar,
+  #appView:not(.hidden) .top-actions{
+    overflow:visible!important;
+  }
+  #appView:not(.hidden) .notif-btn{
+    position:relative!important;
+    z-index:190!important;
+    pointer-events:auto!important;
+  }
+  #appView:not(.hidden) .notif-panel{
+    position:fixed!important;
+    z-index:220!important;
+    pointer-events:auto!important;
+  }
+  #appView:not(.hidden) .notif-panel:not(.hidden){
+    display:block!important;
+  }
+}
+
+@media(max-width:900px) and (orientation:landscape){
+  #appView:not(.hidden){
+    --mobile-menu-height:54px;
+    --mobile-topbar-height:54px;
+    padding-top:calc(var(--mobile-menu-height) + var(--mobile-topbar-height))!important;
+  }
+  #appView:not(.hidden) .sidebar{
+    height:var(--mobile-menu-height)!important;
+    min-height:var(--mobile-menu-height)!important;
+  }
+  #appView:not(.hidden) .topbar{
+    top:var(--mobile-menu-height)!important;
+    height:var(--mobile-topbar-height)!important;
+    min-height:var(--mobile-topbar-height)!important;
+  }
+  #appView:not(.hidden) .notif-panel{
+    top:calc(var(--mobile-menu-height) + var(--mobile-topbar-height) - 2px)!important;
+    right:10px!important;
+    left:auto!important;
+    width:min(340px, calc(100vw - 20px))!important;
+    max-height:calc(100dvh - var(--mobile-menu-height) - var(--mobile-topbar-height) - 10px)!important;
+    overflow:auto!important;
+  }
+}
+
+@media(max-width:820px) and (orientation:portrait){
+  #appView:not(.hidden) .notif-panel{
+    left:10px!important;
+    right:10px!important;
+    width:auto!important;
+    max-width:calc(100vw - 20px)!important;
+    top:calc(var(--mobile-menu-height) + var(--mobile-topbar-height) + 4px)!important;
+    max-height:calc(100dvh - var(--mobile-menu-height) - var(--mobile-topbar-height) - 16px)!important;
+    overflow:auto!important;
+  }
+}
+
+/* Final PDF export rule: one-inch margins on every side */
+@page{
+  size:A4;
+  margin:0!important;
+}
+.report-doc.ofms-a4-pdf,
+.report-doc.exact-pdf{
+  width:210mm!important;
+  max-width:210mm!important;
+  margin:0 auto!important;
+  padding:0!important;
+  background:#fff!important;
+}
+.report-doc.ofms-a4-pdf .ofms-pdf-page,
+.report-doc.exact-pdf .ofms-pdf-page{
+  width:210mm!important;
+  min-height:297mm!important;
+  height:297mm!important;
+  max-height:297mm!important;
+  padding:25.4mm!important;
+  margin:0 auto!important;
+  box-sizing:border-box!important;
+  grid-template-rows:auto minmax(0,1fr) auto!important;
+  overflow:hidden!important;
+}
+.report-doc.ofms-a4-pdf .ofms-pdf-header,
+.report-doc.ofms-a4-pdf .ofms-pdf-footer,
+.report-doc.exact-pdf .ofms-pdf-header,
+.report-doc.exact-pdf .ofms-pdf-footer{
+  padding:0!important;
+}
+.report-doc.ofms-a4-pdf .ofms-pdf-body,
+.report-doc.exact-pdf .ofms-pdf-body{
+  padding:4mm 0!important;
+}
+@media print{
+  html,
+  body{
+    margin:0!important;
+    padding:0!important;
+    background:#fff!important;
+  }
+  body.printing-report .report-doc.ofms-a4-pdf,
+  body.printing-report .report-doc.exact-pdf{
+    width:210mm!important;
+    max-width:210mm!important;
+    margin:0!important;
+    padding:0!important;
+  }
+  body.printing-report .report-doc.ofms-a4-pdf .ofms-pdf-page,
+  body.printing-report .report-doc.exact-pdf .ofms-pdf-page{
+    width:210mm!important;
+    min-height:297mm!important;
+    height:297mm!important;
+    max-height:297mm!important;
+    padding:25.4mm!important;
+    margin:0!important;
+    box-sizing:border-box!important;
+    grid-template-rows:auto minmax(0,1fr) auto!important;
+    overflow:hidden!important;
+    box-shadow:none!important;
+    border:0!important;
+  }
+}
+
+/* Android/iPad PDF preview: fit the preview to the device without changing print output */
+@media screen and (max-width:1180px){
+  #reportModal.preview-readable,
+  #reportModal.preview-polished{
+    position:fixed!important;
+    inset:0!important;
+    display:flex!important;
+    align-items:stretch!important;
+    justify-content:center!important;
+    padding:10px!important;
+    overflow:hidden!important;
+  }
+  #reportModal.preview-readable .report-modal-card,
+  #reportModal.preview-readable .modal-card,
+  #reportModal.preview-polished .report-modal-card,
+  #reportModal.preview-polished .modal-card{
+    width:100%!important;
+    max-width:100%!important;
+    height:calc(100dvh - 20px)!important;
+    max-height:calc(100dvh - 20px)!important;
+    border-radius:20px!important;
+    overflow:hidden!important;
+  }
+  #reportModal.preview-polished .modal-card:before{
+    display:none!important;
+  }
+  #reportModal.preview-readable .close,
+  #reportModal.preview-polished .close{
+    top:10px!important;
+    right:10px!important;
+    width:42px!important;
+    height:42px!important;
+    z-index:60!important;
+  }
+  #reportModal.preview-readable #reportContent,
+  #reportModal.preview-polished #reportContent{
+    width:100%!important;
+    height:100%!important;
+    max-height:none!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    padding:0!important;
+    overflow:hidden!important;
+    background:#eef4ff!important;
+  }
+  #reportModal.preview-readable .preview-titlebar,
+  #reportModal.preview-polished .preview-titlebar{
+    position:relative!important;
+    flex:0 0 auto!important;
+    height:auto!important;
+    min-height:68px!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto!important;
+    gap:12px!important;
+    align-items:center!important;
+    padding:12px 58px 12px 14px!important;
+  }
+  #reportModal.preview-readable .preview-titlebar strong,
+  #reportModal.preview-polished .preview-titlebar strong{
+    font-size:14px!important;
+    line-height:1.2!important;
+    white-space:normal!important;
+    overflow-wrap:anywhere!important;
+  }
+  #reportModal.preview-readable .preview-titlebar span,
+  #reportModal.preview-polished .preview-titlebar span{
+    font-size:11px!important;
+    line-height:1.25!important;
+  }
+  #reportModal.preview-readable .preview-mini-print,
+  #reportModal.preview-polished .preview-mini-print{
+    min-height:42px!important;
+    padding:0 13px!important;
+    border-radius:13px!important;
+    font-size:12px!important;
+    white-space:nowrap!important;
+  }
+  #reportModal.preview-readable .preview-scroll-paper,
+  #reportModal.preview-polished .preview-scroll-paper{
+    flex:1 1 auto!important;
+    height:auto!important;
+    min-height:0!important;
+    width:100%!important;
+    overflow:auto!important;
+    -webkit-overflow-scrolling:touch;
+    padding:14px!important;
+    background:linear-gradient(180deg,#f8fbff,#eef4ff)!important;
+  }
+  #reportModal.preview-readable .preview-scroll-paper .ofms-a4-pdf,
+  #reportModal.preview-polished .preview-scroll-paper .ofms-a4-pdf{
+    width:100%!important;
+    max-width:760px!important;
+    margin:0 auto!important;
+    transform:none!important;
+    background:#fff!important;
+  }
+  #reportModal.preview-readable .preview-scroll-paper .ofms-pdf-page,
+  #reportModal.preview-polished .preview-scroll-paper .ofms-pdf-page{
+    width:100%!important;
+    max-width:760px!important;
+    min-height:auto!important;
+    height:auto!important;
+    max-height:none!important;
+    aspect-ratio:auto!important;
+    padding:clamp(28px,7vw,96px)!important;
+    margin:0 auto 14px!important;
+    display:block!important;
+    overflow:visible!important;
+    box-shadow:0 12px 34px rgba(15,23,42,.14)!important;
+    border:1px solid #e2e8f0!important;
+    border-radius:8px!important;
+  }
+  #reportModal.preview-readable .ofms-pdf-header,
+  #reportModal.preview-polished .ofms-pdf-header,
+  #reportModal.preview-readable .ofms-pdf-footer,
+  #reportModal.preview-polished .ofms-pdf-footer{
+    padding:0!important;
+  }
+  #reportModal.preview-readable .ofms-pdf-body,
+  #reportModal.preview-polished .ofms-pdf-body{
+    padding:10px 0!important;
+    overflow:visible!important;
+  }
+}
+
+@media screen and (max-width:520px){
+  #reportModal.preview-readable,
+  #reportModal.preview-polished{
+    padding:0!important;
+  }
+  #reportModal.preview-readable .report-modal-card,
+  #reportModal.preview-readable .modal-card,
+  #reportModal.preview-polished .report-modal-card,
+  #reportModal.preview-polished .modal-card{
+    height:100dvh!important;
+    max-height:100dvh!important;
+    border-radius:0!important;
+  }
+  #reportModal.preview-readable .preview-titlebar,
+  #reportModal.preview-polished .preview-titlebar{
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+    padding:12px 56px 12px 12px!important;
+  }
+  #reportModal.preview-readable .preview-mini-print,
+  #reportModal.preview-polished .preview-mini-print{
+    width:100%!important;
+  }
+  #reportModal.preview-readable .preview-scroll-paper,
+  #reportModal.preview-polished .preview-scroll-paper{
+    padding:10px!important;
+  }
+  #reportModal.preview-readable .preview-scroll-paper .ofms-pdf-page,
+  #reportModal.preview-polished .preview-scroll-paper .ofms-pdf-page{
+    padding:24px!important;
+    margin-bottom:10px!important;
+    border-radius:6px!important;
+  }
+  #reportModal.preview-readable .ofms-pdf-header strong,
+  #reportModal.preview-polished .ofms-pdf-header strong{
+    font-size:10px!important;
+    line-height:1.2!important;
+  }
+  #reportModal.preview-readable .ofms-command-head b,
+  #reportModal.preview-polished .ofms-command-head b{
+    font-size:11px!important;
+    line-height:1.25!important;
+  }
+  #reportModal.preview-readable .ofms-a4-pdf h2,
+  #reportModal.preview-polished .ofms-a4-pdf h2{
+    font-size:15px!important;
+  }
+  #reportModal.preview-readable .ofms-a4-pdf p,
+  #reportModal.preview-polished .ofms-a4-pdf p{
+    font-size:13px!important;
+    line-height:1.35!important;
+  }
+}
