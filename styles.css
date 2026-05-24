@@ -4260,3 +4260,110 @@ body.pdf-preview-open #reportModal .preview-scroll-paper .ofms-pdf-page{
     overflow:hidden!important;
   }
 }
+
+/* Final PDF numbering/grouping rules: 5-8 and 9-10 fit only when compact */
+.ofms-a4-pdf .sections-5-8-page .ofms-pdf-body,
+.ofms-a4-pdf .sections-5-7-page .ofms-pdf-body,
+.ofms-a4-pdf .sections-9-10-page .ofms-pdf-body{
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:flex-start!important;
+  overflow:hidden!important;
+}
+.ofms-a4-pdf .sections-5-8-page h2,
+.ofms-a4-pdf .sections-5-7-page h2,
+.ofms-a4-pdf .sections-9-10-page h2{
+  font-size:9.4pt!important;
+  line-height:1.04!important;
+  margin:.65mm 0 .35mm!important;
+}
+.ofms-a4-pdf .sections-5-8-page .ofms-pdf-graph,
+.ofms-a4-pdf .sections-5-7-page .ofms-pdf-graph{
+  max-height:34mm!important;
+  padding:.9mm 1.25mm!important;
+  margin:.45mm auto .6mm!important;
+}
+.ofms-a4-pdf .sections-5-8-page .ofms-pdf-graph.ofms-indicator-graph{
+  max-height:42mm!important;
+}
+.ofms-a4-pdf .sections-5-8-page .ofms-pdf-graph h3,
+.ofms-a4-pdf .sections-5-7-page .ofms-pdf-graph h3{
+  font-size:8pt!important;
+  margin:0 0 .45mm!important;
+}
+.ofms-a4-pdf .sections-5-8-page .ofms-graph-list,
+.ofms-a4-pdf .sections-5-7-page .ofms-graph-list{
+  gap:.22mm!important;
+}
+.ofms-a4-pdf .sections-5-8-page .ofms-graph-row,
+.ofms-a4-pdf .sections-5-7-page .ofms-graph-row{
+  grid-template-columns:25mm 1fr 7mm!important;
+  gap:.55mm!important;
+  font-size:6.4pt!important;
+}
+.ofms-a4-pdf .sections-5-8-page .ofms-graph-row b,
+.ofms-a4-pdf .sections-5-7-page .ofms-graph-row b{
+  height:1.25mm!important;
+}
+.ofms-a4-pdf .sections-5-8-page .ofms-graph-row em,
+.ofms-a4-pdf .sections-5-7-page .ofms-graph-row em{
+  font-size:6.2pt!important;
+}
+.ofms-a4-pdf .sections-5-8-page .interpretation,
+.ofms-a4-pdf .sections-5-7-page .interpretation{
+  margin:.25mm 0 .5mm!important;
+}
+.ofms-a4-pdf .sections-5-8-page .interpretation strong,
+.ofms-a4-pdf .sections-5-7-page .interpretation strong{
+  font-size:7.8pt!important;
+  line-height:1.02!important;
+}
+.ofms-a4-pdf .sections-5-8-page .interpretation p,
+.ofms-a4-pdf .sections-5-7-page .interpretation p{
+  font-size:7.25pt!important;
+  line-height:1.04!important;
+}
+.ofms-a4-pdf .sections-9-10-page .priority-grid{
+  gap:.75mm!important;
+  margin:.6mm 0 .8mm!important;
+  max-height:70mm!important;
+  overflow:hidden!important;
+}
+.ofms-a4-pdf .sections-9-10-page .priority-card{
+  padding:.75mm!important;
+}
+.ofms-a4-pdf .sections-9-10-page .priority-card b{
+  font-size:7.4pt!important;
+}
+.ofms-a4-pdf .sections-9-10-page .priority-card span{
+  font-size:6.8pt!important;
+}
+.ofms-a4-pdf .sections-9-10-page .notable-box{
+  gap:.65mm!important;
+  max-height:120mm!important;
+  overflow:hidden!important;
+}
+.ofms-a4-pdf .sections-9-10-page .notable-item{
+  grid-template-columns:5.5mm 1fr!important;
+  gap:.9mm!important;
+  padding:.75mm .9mm!important;
+  max-height:23mm!important;
+}
+.ofms-a4-pdf .sections-9-10-page .notable-item span{
+  width:4.8mm!important;
+  height:4.8mm!important;
+  font-size:6.7pt!important;
+}
+.ofms-a4-pdf .sections-9-10-page .notable-item p{
+  font-size:7.6pt!important;
+  line-height:1.04!important;
+}
+@media print{
+  body.printing-report .ofms-a4-pdf .sections-5-8-page .ofms-pdf-graph,
+  body.printing-report .ofms-a4-pdf .sections-5-7-page .ofms-pdf-graph{
+    max-height:34mm!important;
+  }
+  body.printing-report .ofms-a4-pdf .sections-9-10-page .notable-box{
+    max-height:120mm!important;
+  }
+}

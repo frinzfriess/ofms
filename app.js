@@ -2364,6 +2364,15 @@ function reportDoc(r){
     .map(x=>String(x||'').trim())
     .filter(x=>x && x!=='.' && x!=='-' && x.toLowerCase()!=='n/a')
     .slice(0,10);
+  const profileCount=Object.values(profileObj||{}).filter(v=>Number(v)>0).length;
+  const secondaryCount=Object.values(secondaryObj||{}).filter(v=>Number(v)>0).length;
+  const trendCount=(r.trend||[]).length || 1;
+  const areaCount=(r.items||[]).length;
+  const priorityCount=Math.min((topLower(r,4).length + topHigher(r,2).length), 6);
+  const canFitSections5To8 = areaCount<=6 && profileCount<=4 && secondaryCount<=4 && trendCount<=3;
+  const canFitSections5To7 = profileCount<=5 && secondaryCount<=5 && trendCount<=4;
+  const canFitSections5To6 = secondaryCount<=5 && trendCount<=4;
+  const canFitSections9To10 = usableRemarks.length<=4 && priorityCount<=5;
   const pages=[];
   const summativeTitle = r.type==='job'?'Summative Job Satisfaction Interpretation':'Summative Client Satisfaction Interpretation';
   pages.push(ofmsPage(`
@@ -2390,31 +2399,92 @@ function reportDoc(r){
     ${surveyAreaSummaryHtml(r)}
     ${narrativeParts.slice(6,9).map(x=>`<p>${escapeHtml(x)}</p>`).join('')}
   `,'reading-points-page'));
-  pages.push(ofmsPage(`
+  const sections5To8 = `
     <h2>5. Survey Trend Analysis</h2>
     ${trendGraphHtml(r)}
     ${interpretationBlock('Trend Interpretation',trendInterpretation(r).replace(/uploaded worksheet|worksheet|excel|xlsx/gi,'survey data'))}
     <h2>6. ${escapeHtml(secondaryTitle)}</h2>
     ${graphCounts(secondaryObj,secondaryTitle)}
     ${interpretationBlock(`${secondaryTitle} Interpretation`,graphInterpretation(secondaryObj,secondaryTitle))}
-  `,'trend-secondary-page'));
-  pages.push(ofmsPage(`
     <h2>7. ${escapeHtml(profileTitle)}</h2>
     ${graphCounts(profileObj,profileTitle)}
     ${interpretationBlock(`${profileTitle} Interpretation`,graphInterpretation(profileObj,profileTitle))}
-    <h2>9. Priority and Strength Areas</h2>
-    ${priorityGraphHtml(r)}
-    <p>The priority graph separates lower-scoring areas from stronger areas. Lower-rated areas should be read as improvement points, while stronger areas may be sustained and used as reference points for future survey periods.</p>
-  `,'profile-priority-page'));
-  pages.push(ofmsPage(`
     <h2>8. ${r.type==='job'?'Job Satisfaction Area Performance':'Client Satisfaction Area Performance'}</h2>
     ${graphItems(r)}
     ${interpretationBlock('Survey Area Interpretation',itemText)}
-  `,'area-performance-page'));
-  pages.push(ofmsPage(`
+  `;
+  if(canFitSections5To8){
+    pages.push(ofmsPage(sections5To8,'sections-5-8-page'));
+  }else if(canFitSections5To7){
+    pages.push(ofmsPage(`
+      <h2>5. Survey Trend Analysis</h2>
+      ${trendGraphHtml(r)}
+      ${interpretationBlock('Trend Interpretation',trendInterpretation(r).replace(/uploaded worksheet|worksheet|excel|xlsx/gi,'survey data'))}
+      <h2>6. ${escapeHtml(secondaryTitle)}</h2>
+      ${graphCounts(secondaryObj,secondaryTitle)}
+      ${interpretationBlock(`${secondaryTitle} Interpretation`,graphInterpretation(secondaryObj,secondaryTitle))}
+      <h2>7. ${escapeHtml(profileTitle)}</h2>
+      ${graphCounts(profileObj,profileTitle)}
+      ${interpretationBlock(`${profileTitle} Interpretation`,graphInterpretation(profileObj,profileTitle))}
+    `,'sections-5-7-page'));
+    pages.push(ofmsPage(`
+      <h2>8. ${r.type==='job'?'Job Satisfaction Area Performance':'Client Satisfaction Area Performance'}</h2>
+      ${graphItems(r)}
+      ${interpretationBlock('Survey Area Interpretation',itemText)}
+    `,'area-performance-page'));
+  }else{
+    if(canFitSections5To6){
+      pages.push(ofmsPage(`
+        <h2>5. Survey Trend Analysis</h2>
+        ${trendGraphHtml(r)}
+        ${interpretationBlock('Trend Interpretation',trendInterpretation(r).replace(/uploaded worksheet|worksheet|excel|xlsx/gi,'survey data'))}
+        <h2>6. ${escapeHtml(secondaryTitle)}</h2>
+        ${graphCounts(secondaryObj,secondaryTitle)}
+        ${interpretationBlock(`${secondaryTitle} Interpretation`,graphInterpretation(secondaryObj,secondaryTitle))}
+      `,'trend-secondary-page'));
+    }else{
+      pages.push(ofmsPage(`
+        <h2>5. Survey Trend Analysis</h2>
+        ${trendGraphHtml(r)}
+        ${interpretationBlock('Trend Interpretation',trendInterpretation(r).replace(/uploaded worksheet|worksheet|excel|xlsx/gi,'survey data'))}
+      `,'trend-page'));
+      pages.push(ofmsPage(`
+        <h2>6. ${escapeHtml(secondaryTitle)}</h2>
+        ${graphCounts(secondaryObj,secondaryTitle)}
+        ${interpretationBlock(`${secondaryTitle} Interpretation`,graphInterpretation(secondaryObj,secondaryTitle))}
+      `,'secondary-page'));
+    }
+    pages.push(ofmsPage(`
+      <h2>7. ${escapeHtml(profileTitle)}</h2>
+      ${graphCounts(profileObj,profileTitle)}
+      ${interpretationBlock(`${profileTitle} Interpretation`,graphInterpretation(profileObj,profileTitle))}
+    `,'profile-page'));
+    pages.push(ofmsPage(`
+      <h2>8. ${r.type==='job'?'Job Satisfaction Area Performance':'Client Satisfaction Area Performance'}</h2>
+      ${graphItems(r)}
+      ${interpretationBlock('Survey Area Interpretation',itemText)}
+    `,'area-performance-page'));
+  }
+  const sections9To10 = `
+    <h2>9. Priority and Strength Areas</h2>
+    ${priorityGraphHtml(r)}
+    <p>The priority graph separates lower-scoring areas from stronger areas. Lower-rated areas should be read as improvement points, while stronger areas may be sustained and used as reference points for future survey periods.</p>
     <h2>10. Notable Qualitative Remarks</h2>
     ${notableRemarksHtml(r, usableRemarks, 0)}
-  `,'remarks-page'));
+  `;
+  if(canFitSections9To10){
+    pages.push(ofmsPage(sections9To10,'sections-9-10-page'));
+  }else{
+    pages.push(ofmsPage(`
+      <h2>9. Priority and Strength Areas</h2>
+      ${priorityGraphHtml(r)}
+      <p>The priority graph separates lower-scoring areas from stronger areas. Lower-rated areas should be read as improvement points, while stronger areas may be sustained and used as reference points for future survey periods.</p>
+    `,'priority-page'));
+    pages.push(ofmsPage(`
+      <h2>10. Notable Qualitative Remarks</h2>
+      ${notableRemarksHtml(r, usableRemarks, 0)}
+    `,'remarks-page'));
+  }
   pages.push(ofmsPage(`
     ${signatoryHtml()}
   `,'signatory-only-page'));
