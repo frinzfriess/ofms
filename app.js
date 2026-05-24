@@ -10,7 +10,7 @@ const SESSION_KEY = 'ofms_supabase_session_v1';
 const db = window.supabase?.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let state = {
-  currentUser: localStorage.getItem(SESSION_KEY) || null,
+  currentUser: null,
   userRow: null,
   reports: [],
   logs: [],
@@ -29,7 +29,7 @@ function toast(msg){
 function nowISO(){ return new Date().toISOString(); }
 function nowDisplay(){ return new Date().toLocaleString(); }
 function initials(name){ return (name || 'AD').split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0].toUpperCase()).join('') || 'AD'; }
-function currentUser(){ return state.userRow || { username: state.currentUser || 'admin', display_name:'Administrator', office:'Office of the Adjutant', role:'Administrator' }; }
+function currentUser(){ return state.userRow || { username: state.currentUser || '', display_name:'Administrator', office:'Office of the Adjutant', role:'Administrator' }; }
 function displayName(u=currentUser()){ return u.display_name || u.displayName || u.username || 'Administrator'; }
 function userOffice(u=currentUser()){ return u.office || 'Office of the Adjutant'; }
 function userRole(u=currentUser()){ return u.role || u.position || 'Administrator'; }
@@ -228,13 +228,9 @@ $('#loginForm').onsubmit = async e => {
   setBusy('Signing in to Supabase...');
   try{
     let found = await fetchUser(u);
-    if(!found && u.toLowerCase()==='admin' && p==='admin123'){
-      found = await insertUser('admin', 'admin123');
-    }
     if(!found || !(await verifyPassword(p, found.password_hash))) return toast('Invalid username or password.');
     state.currentUser = found.username;
     state.userRow = found;
-    localStorage.setItem(SESSION_KEY, found.username);
     await updateLastLogin(found.username);
     await log('LOGIN','User logged in','SESSION');
     await bootApp();
@@ -252,7 +248,6 @@ $('#createForm').onsubmit = async e => {
     const created = await insertUser(u,p);
     state.currentUser = created.username;
     state.userRow = created;
-    localStorage.setItem(SESSION_KEY, created.username);
     await log('CREATE','Account created','USER', created.username);
     await bootApp();
   }catch(err){ toast(err.message || 'Account creation failed.'); }
@@ -1232,8 +1227,9 @@ $('#generateBtn').onclick = async () => {
 $$('.ux-tile[data-go]').forEach(btn=>{ btn.onclick=()=>showPage(btn.dataset.go); });
 
 (async function init(){
-  if(state.currentUser) await bootApp();
-  else { $('#authView').classList.remove('hidden'); $('#appView').classList.add('hidden'); }
+  localStorage.removeItem(SESSION_KEY);
+  $('#authView').classList.remove('hidden');
+  $('#appView').classList.add('hidden');
 })();
 
 
