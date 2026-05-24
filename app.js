@@ -33,6 +33,21 @@ function currentUser(){ return state.userRow || { username: state.currentUser ||
 function displayName(u=currentUser()){ return u.display_name || u.displayName || u.username || 'Administrator'; }
 function userOffice(u=currentUser()){ return u.office || 'Office of the Adjutant'; }
 function userRole(u=currentUser()){ return u.role || u.position || 'Administrator'; }
+function saveSession(username){
+  if(!username) return;
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ username, saved_at: nowISO() }));
+}
+function readSession(){
+  const raw = localStorage.getItem(SESSION_KEY);
+  if(!raw) return null;
+  try{
+    const parsed = JSON.parse(raw);
+    return parsed?.username ? parsed : null;
+  }catch{
+    return raw ? { username: raw } : null;
+  }
+}
+function clearSession(){ localStorage.removeItem(SESSION_KEY); }
 function getSummary(r){
   const raw = r?.summary_json;
   if(!raw) return r || {};
@@ -49,8 +64,8 @@ function toUiReport(row){
     responses: Number(row.total_responses ?? s.total_responses ?? s.responses ?? 0),
     mean: Number(s.overall_mean ?? s.mean ?? 0),
     satisfaction: Number(s.satisfaction_percentage ?? s.satisfaction ?? 0),
-    gender: s.gender_counts || s.gender || {},
-    assignment: s.assignment_counts || s.assignment || {},
+    gender: normalizeCountMap(s.gender_counts || s.gender || {}, classifyGender),
+    assignment: normalizeCountMap(s.assignment_counts || s.assignment || {}, classifyStatus),
     years: s.years_service_counts || s.years || {},
     age: s.age_counts || s.age || {},
     customerType: s.customer_type_counts || s.customerType || {},
@@ -231,6 +246,7 @@ $('#loginForm').onsubmit = async e => {
     if(!found || !(await verifyPassword(p, found.password_hash))) return toast('Invalid username or password.');
     state.currentUser = found.username;
     state.userRow = found;
+    saveSession(found.username);
     await updateLastLogin(found.username);
     await log('LOGIN','User logged in','SESSION');
     await bootApp();
@@ -248,6 +264,7 @@ $('#createForm').onsubmit = async e => {
     const created = await insertUser(u,p);
     state.currentUser = created.username;
     state.userRow = created;
+    saveSession(created.username);
     await log('CREATE','Account created','USER', created.username);
     await bootApp();
   }catch(err){ toast(err.message || 'Account creation failed.'); }
@@ -255,7 +272,7 @@ $('#createForm').onsubmit = async e => {
 };
 $('#logoutBtn').onclick = async () => {
   await log('LOGOUT','User logged out','SESSION');
-  state.currentUser=null; state.userRow=null; localStorage.removeItem(SESSION_KEY);
+  state.currentUser=null; state.userRow=null; clearSession();
   $('#appView').classList.add('hidden'); $('#authView').classList.remove('hidden');
 };
 
@@ -263,8 +280,27 @@ async function bootApp(){
   setBusy('Loading OFMS database...');
   try{
     if(state.currentUser && !state.userRow) state.userRow = await fetchUser(state.currentUser);
+    if(state.currentUser && !state.userRow){
+      clearSession();
+      state.currentUser=null;
+      throw new Error('Saved session expired. Please log in again.');
+    }
     $('#authView').classList.add('hidden'); $('#appView').classList.remove('hidden');
-    hydrateUser(); showPage('dashboard'); await loadReports(); await loadLogs(); renderAll();
+    hydrateUser();
+    showPage('dashboard');
+    try{
+      await loadReports();
+    }catch(err){
+      console.warn('Report loading failed:', err);
+      toast('Signed in, but reports could not be loaded yet.');
+    }
+    try{
+      await loadLogs();
+    }catch(err){
+      console.warn('Log loading failed:', err);
+      state.logs = [];
+    }
+    renderAll();
   }catch(err){
     toast(err.message || 'Unable to load Supabase data.');
     $('#authView').classList.remove('hidden'); $('#appView').classList.add('hidden');
@@ -492,6 +528,18 @@ function findCol(row, patterns){
   return keys.find(k=>patterns.some(p=>p.test(normKey(k)) || p.test(String(k).toLowerCase()))) || null;
 }
 function cleanVal(v){ return String(v??'').trim(); }
+function normalizeCountMap(obj, classifier=null){
+  const out={};
+  Object.entries(obj || {}).forEach(([key,val])=>{
+    const count=Number(val);
+    if(!Number.isFinite(count) || count<=0) return;
+    let label=cleanVal(key);
+    if(classifier) label=classifier(label);
+    if(!label) label='Unspecified';
+    out[label]=(out[label]||0)+count;
+  });
+  return sortCountObj(out);
+}
 function countBy(rows, col, classifier=null){
   const out={}; if(!col) return out;
   rows.forEach(r=>{ let v=cleanVal(r[col]); if(classifier) v=classifier(v); if(!v) v='Unspecified'; out[v]=(out[v]||0)+1; });
@@ -499,7 +547,13 @@ function countBy(rows, col, classifier=null){
 }
 function sortCountObj(obj){ return Object.fromEntries(Object.entries(obj||{}).sort((a,b)=>Number(b[1])-Number(a[1]) || String(a[0]).localeCompare(String(b[0])))); }
 function classifyGender(v){ const s=cleanVal(v).toLowerCase(); if(/^m(ale)?$/.test(s)||s.includes('male')&&!s.includes('female')) return 'Male'; if(/^f(emale)?$/.test(s)||s.includes('female')) return 'Female'; return s?'Other/Unspecified':''; }
-function classifyStatus(v){ const raw=cleanVal(v); const s=raw.toLowerCase().replace(/[^a-z0-9]+/g,''); if(['ds','dservice','detached','detachedservice'].includes(s)||s.includes('detached')) return 'Detached Service (D.S.)'; if(s.includes('organic')) return 'Organic'; return raw||''; }
+function classifyStatus(v){
+  const raw=cleanVal(v);
+  const s=raw.toLowerCase().replace(/[^a-z0-9]+/g,'');
+  if(['ds','dservice','detached','detachedservice','detachedsvc'].includes(s)||s.includes('detached')) return 'Detached Service (D.S.)';
+  if(['org','organic'].includes(s)||s.includes('organic')) return 'Organic';
+  return raw||'';
+}
 function classifyAge(v){ const n=parseInt(cleanVal(v),10); if(!Number.isFinite(n)) return cleanVal(v); if(n<20) return 'Below 20'; if(n<=29) return '20 - 29'; if(n<=39) return '30 - 39'; if(n<=49) return '40 - 49'; if(n<=59) return '50 - 59'; return '60 and above'; }
 function parseDateValue(v, preference='auto'){
   if(v instanceof Date && !Number.isNaN(v.getTime())) return v;
@@ -614,8 +668,8 @@ function analyzeRows(rows, type, title){
   const sample=rows[0]||{};
   const dateCol=findCol(sample,[/timestamp/,/date/,/submitted/]);
   const coverage=coverageFromDates(rows,dateCol);
-  const genderCol=findCol(sample,[/^sex$/, /^gender$/]);
-  const statusCol=findCol(sample,[/assignmentstatus/,/assignment/]);
+  const genderCol=findCol(sample,[/^sex$/, /^sex/, /^gender$/, /sexgender/, /gendersex/, /sex.*gender/, /gender.*sex/, /genderidentity/]);
+  const statusCol=findCol(sample,[/assignmentstatus/,/statusofassignment/,/^assignment$/, /organicdetached/, /organic.*detached/, /organic.*ds/, /detachedservice/, /detachedsvc/]);
   const yearsCol=findCol(sample,[/noofyearsinservice/,/yearsinservice/,/lengthofservice/,/serviceyears/,/year.*service/]);
   const rankCol=findCol(sample,[/militaryrankgrade/,/rank/,/grade/]);
   const livingCol=findCol(sample,[/livingarrangement/,/living/]);
@@ -851,6 +905,12 @@ function pdfDocumentTitle(r){
 
 function reportDateMs(r){ return new Date(r.created || r.uploaded_at || Date.now()).getTime(); }
 function latestReportByType(type){ return state.reports.filter(r=>r.type===type).sort((a,b)=>reportDateMs(b)-reportDateMs(a))[0] || null; }
+function hasCountData(obj){ return Object.values(obj || {}).some(v=>Number(v)>0); }
+function latestReportWithCount(field, type=null){
+  return state.reports
+    .filter(r=>(!type || r.type===type) && hasCountData(r?.[field]))
+    .sort((a,b)=>reportDateMs(b)-reportDateMs(a))[0] || null;
+}
 function importantDashboardInfo(r){
   if(!r) return '<p class="muted empty-state">No report generated yet for this survey type.</p>';
   const top = r.items?.[0];
@@ -888,9 +948,15 @@ function renderDashboard(){
   if(latestTitleEl) latestTitleEl.textContent = latest ? latest.title : 'No survey report available yet.';
   $('#metricCoverage').textContent = latest ? (latest.coverage || coverageFromReport(latest)) : '—';
   const profileBase = latest || csm || job;
-  $('#genderSub').textContent = profileBase?.type === 'job' && !Object.keys(profileBase.gender||{}).length ? 'No Sex/Gender column detected; see Years in Service profile below.' : 'Actual Sex/Gender data when available';
-  renderDonut('#genderChart','#genderLegend', profileBase?.gender || {}, ['#007aff','#ff2d55','#8e8e93']);
-  renderDonut('#statusChart','#statusLegend', profileBase?.assignment || {}, ['#ff9500','#34c759','#8e8e93']);
+  const genderReport = latestReportWithCount('gender') || profileBase;
+  const statusReport = latestReportWithCount('assignment','job') || latestReportWithCount('assignment') || job || profileBase;
+  const genderData = normalizeCountMap(genderReport?.gender || {}, classifyGender);
+  const statusData = normalizeCountMap(statusReport?.assignment || {}, classifyStatus);
+  $('#genderSub').textContent = hasCountData(genderData)
+    ? `Showing latest Sex/Gender data from ${genderReport?.title || 'saved report'}`
+    : 'No Sex/Gender column detected in saved reports.';
+  renderDonut('#genderChart','#genderLegend', genderData, ['#007aff','#ff2d55','#8e8e93']);
+  renderDonut('#statusChart','#statusLegend', statusData, ['#ff9500','#34c759','#8e8e93']);
   renderTrend();
   renderMiniBars('#meanCompareChart', [
     {label:'CSM', value:csm ? Number(csm.mean||0) : 0, className:'blue'},
@@ -1266,7 +1332,12 @@ $('#generateBtn').onclick = async () => {
 $$('.ux-tile[data-go]').forEach(btn=>{ btn.onclick=()=>showPage(btn.dataset.go); });
 
 (async function init(){
-  localStorage.removeItem(SESSION_KEY);
+  const remembered = readSession();
+  if(remembered?.username){
+    state.currentUser = remembered.username;
+    await bootApp();
+    return;
+  }
   $('#authView').classList.remove('hidden');
   $('#appView').classList.add('hidden');
 })();
@@ -1914,11 +1985,13 @@ function surveyOnlyNarrative(r){
   ];
 }
 
-function notableRemarksHtml(r){
-  const usable = (r.remarks || [])
-    .map(x => String(x || '').trim())
-    .filter(x => x && x !== '.' && x !== '-' && x.toLowerCase() !== 'n/a')
-    .slice(0, 10);
+function notableRemarksHtml(r, providedRemarks=null, startIndex=0){
+  const usable = Array.isArray(providedRemarks)
+    ? providedRemarks
+    : (r.remarks || [])
+      .map(x => String(x || '').trim())
+      .filter(x => x && x !== '.' && x !== '-' && x.toLowerCase() !== 'n/a')
+      .slice(0, 10);
 
   if(!usable.length){
     return `<div class="notable-box"><p>No usable written remarks were provided for this survey period.</p></div>`;
@@ -1926,7 +1999,7 @@ function notableRemarksHtml(r){
 
   return `<div class="notable-box">${usable.map((x, i) => `
     <div class="notable-item">
-      <span>${i + 1}</span>
+      <span>${startIndex + i + 1}</span>
       <p>${escapeHtml(x)}</p>
     </div>
   `).join('')}</div>`;
@@ -2044,6 +2117,10 @@ window.openReport = (id)=>{
     $('#reportModal').classList.remove('hidden');
     $('#reportModal').classList.add('preview-polished','preview-readable');
     document.body.classList.add('pdf-preview-open');
+    requestAnimationFrame(()=>{
+      $('#reportModal')?.scrollTo?.(0, 0);
+      $('.preview-scroll-paper')?.scrollTo?.(0, 0);
+    });
   }catch(err){
     console.error('Report preview error:', err);
     toast('Report preview failed. Please regenerate the report.');
@@ -2259,6 +2336,7 @@ function expandedSurveyOnlyNarrative(r){
 }
 function reportDoc(r){
   const reportDate=new Date(r.created).toLocaleDateString('en-PH',{day:'2-digit',month:'long',year:'numeric'});
+  const pdfTitle=pdfDocumentTitle(r);
   const profileObj=r.type==='job'?r.years:(Object.keys(r.gender||{}).length?r.gender:r.customerType);
   const profileTitle=r.type==='job'?'Years in Service':'Respondent Profile Distribution';
   const secondaryTitle=r.type==='job'?'Assignment Status':'Service Distribution';
@@ -2266,12 +2344,23 @@ function reportDoc(r){
   const top=r.items?.[0], low=r.items?.[r.items.length-1];
   const itemText=r.items?.length?`The survey area graph presents the comparative mean score of each measured ${r.type==='job'?'job-satisfaction area':'client-service area'}. ${cleanItemName(top.name)} received the highest score at ${Number(top.mean).toFixed(2)}/5.00, while ${cleanItemName(low.name)} received the lowest score at ${Number(low.mean).toFixed(2)}/5.00. This graph identifies the strongest area to sustain and the lowest area to review.`:'No rating survey areas were available for this report.';
   const narrativeParts=expandedSurveyOnlyNarrative(r).filter(x=>!/(worksheet|excel|xlsx|uploaded|system)/i.test(x));
+  const usableRemarks=(r.remarks||[])
+    .map(x=>String(x||'').trim())
+    .filter(x=>x && x!=='.' && x!=='-' && x.toLowerCase()!=='n/a')
+    .slice(0,10);
+  const remarkChunks=usableRemarks.length
+    ? usableRemarks.reduce((chunks, remark, index)=>{
+        if(index % 4 === 0) chunks.push([]);
+        chunks[chunks.length-1].push(remark);
+        return chunks;
+      },[])
+    : [[]];
   const pages=[];
   const summativeTitle = r.type==='job'?'Summative Job Satisfaction Interpretation':'Summative Client Satisfaction Interpretation';
   pages.push(ofmsPage(`
     <div class="ofms-command-head"><b>HEADQUARTERS PHILIPPINE ARMY<br>OFFICE OF THE ADJUTANT<br>Fort Andres Bonifacio, Taguig City</b></div>
     <div class="ofms-memo-line"><span>OADJ</span><span>${reportDate}</span></div>
-    <p class="ofms-memo"><strong>SUBJECT:</strong> ${escapeHtml(r.title)}</p>
+    <p class="ofms-memo"><strong>SUBJECT:</strong> ${escapeHtml(pdfTitle)}</p>
     <p class="ofms-memo"><strong>TO:</strong> Adjutant, PA<br>Post<br>Attn: Admin</p>
     <h2>1. Executive Summary</h2>
     ${summaryCardsGraphOnly(r)}
@@ -2296,14 +2385,18 @@ function reportDoc(r){
     <h2>5. Survey Trend Analysis</h2>
     ${trendGraphHtml(r)}
     ${interpretationBlock('Trend Interpretation',trendInterpretation(r).replace(/uploaded worksheet|worksheet|excel|xlsx/gi,'survey data'))}
+  `,'trend-page'));
+  pages.push(ofmsPage(`
     <h2>6. ${escapeHtml(secondaryTitle)}</h2>
     ${graphCounts(secondaryObj,secondaryTitle)}
     ${interpretationBlock(`${secondaryTitle} Interpretation`,graphInterpretation(secondaryObj,secondaryTitle))}
-  `,'trend-profile-page'));
+  `,'secondary-profile-page'));
   pages.push(ofmsPage(`
     <h2>7. ${escapeHtml(profileTitle)}</h2>
     ${graphCounts(profileObj,profileTitle)}
     ${interpretationBlock(`${profileTitle} Interpretation`,graphInterpretation(profileObj,profileTitle))}
+  `,'profile-page'));
+  pages.push(ofmsPage(`
     <h2>8. ${r.type==='job'?'Job Satisfaction Area Performance':'Client Satisfaction Area Performance'}</h2>
     ${graphItems(r)}
     ${interpretationBlock('Survey Area Interpretation',itemText)}
@@ -2312,11 +2405,18 @@ function reportDoc(r){
     <h2>9. Priority and Strength Areas</h2>
     ${priorityGraphHtml(r)}
     <p>The priority graph separates lower-scoring areas from stronger areas. Lower-rated areas should be read as improvement points, while stronger areas may be sustained and used as reference points for future survey periods.</p>
-    <h2>10. Notable Qualitative Remarks</h2>
-    ${notableRemarksHtml(r)}
-    <p></p>
+  `,'priority-page'));
+  remarkChunks.forEach((chunk, index)=>{
+    pages.push(ofmsPage(`
+      <h2>${index?'10. Notable Qualitative Remarks (continued)':'10. Notable Qualitative Remarks'}</h2>
+      ${notableRemarksHtml(r, chunk, index*4)}
+    `,'remarks-page'));
+  });
+  pages.push(ofmsPage(`
+    <h2>Prepared and Certified By</h2>
+    <p class="memo-note">This page contains the signatory confirmation section for the survey result report.</p>
     ${signatoryHtml()}
-  `,'remarks-page'));
+  `,'signatory-only-page'));
   return `<article class="report-doc ofms-a4-pdf exact-pdf">${pages.join('')}</article>`;
 }
 function renderMoreInsightCards(){

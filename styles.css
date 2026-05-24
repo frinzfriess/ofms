@@ -3629,3 +3629,201 @@ body.pdf-preview-open #reportModal{
     touch-action:auto;
   }
 }
+
+/* Final PDF preview unstick patch for mobile browsers */
+body.pdf-preview-open{
+  overflow:hidden!important;
+  touch-action:auto!important;
+}
+body.pdf-preview-open #reportModal{
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100vh!important;
+  height:100dvh!important;
+  max-width:100vw!important;
+  max-height:100dvh!important;
+  overflow:hidden!important;
+  touch-action:auto!important;
+  overscroll-behavior:contain;
+}
+body.pdf-preview-open #reportModal .modal-card,
+body.pdf-preview-open #reportModal .report-modal-card{
+  height:100%!important;
+  max-height:100%!important;
+  overflow:hidden!important;
+  touch-action:auto!important;
+}
+body.pdf-preview-open #reportModal #reportContent{
+  height:100%!important;
+  min-height:0!important;
+  overflow:hidden!important;
+  touch-action:auto!important;
+}
+body.pdf-preview-open #reportModal .preview-scroll-paper{
+  min-height:0!important;
+  height:auto!important;
+  flex:1 1 auto!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  -webkit-overflow-scrolling:touch!important;
+  touch-action:pan-y!important;
+  overscroll-behavior:contain;
+}
+body.pdf-preview-open #reportModal .preview-titlebar{
+  flex:0 0 auto!important;
+}
+body.pdf-preview-open #reportModal .preview-scroll-paper .ofms-a4-pdf,
+body.pdf-preview-open #reportModal .preview-scroll-paper .ofms-pdf-page{
+  touch-action:pan-y!important;
+}
+@media screen and (max-width:1180px){
+  body.pdf-preview-open #reportModal.preview-readable,
+  body.pdf-preview-open #reportModal.preview-polished{
+    padding:0!important;
+  }
+  body.pdf-preview-open #reportModal.preview-readable .modal-card,
+  body.pdf-preview-open #reportModal.preview-polished .modal-card{
+    border-radius:0!important;
+  }
+}
+
+/* Final PDF signatory page guard */
+.ofms-a4-pdf .signatory-only-page .ofms-pdf-body{
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+  overflow:visible!important;
+}
+.ofms-a4-pdf .signatory-only-page h2{
+  margin-top:0!important;
+  margin-bottom:8mm!important;
+}
+.ofms-a4-pdf .signatory-only-page .memo-note{
+  margin:0 0 18mm!important;
+  color:#334155!important;
+}
+.ofms-a4-pdf .signatory-only-page .sign-row{
+  margin-top:10mm!important;
+  break-inside:avoid!important;
+  page-break-inside:avoid!important;
+}
+.ofms-a4-pdf .signatory-only-page .sign-row u{
+  margin-top:10mm!important;
+}
+@media print{
+  body.printing-report .ofms-a4-pdf .signatory-only-page,
+  body.printing-report .ofms-a4-pdf .signatory-only-page .ofms-pdf-body{
+    overflow:visible!important;
+  }
+}
+
+/* Final PDF safe-area guard: keep content away from header and footer */
+.report-doc.ofms-a4-pdf .ofms-pdf-page,
+.report-doc.exact-pdf .ofms-pdf-page{
+  display:grid!important;
+  grid-template-rows:12mm minmax(0,212mm) 15mm!important;
+  row-gap:3mm!important;
+  width:210mm!important;
+  height:297mm!important;
+  min-height:297mm!important;
+  max-height:297mm!important;
+  padding:25.4mm!important;
+  margin:0 auto!important;
+  overflow:hidden!important;
+  box-sizing:border-box!important;
+}
+.report-doc.ofms-a4-pdf .ofms-pdf-header,
+.report-doc.exact-pdf .ofms-pdf-header{
+  height:12mm!important;
+  min-height:0!important;
+  max-height:12mm!important;
+  overflow:hidden!important;
+  padding:0!important;
+  align-items:flex-start!important;
+}
+.report-doc.ofms-a4-pdf .ofms-pdf-footer,
+.report-doc.exact-pdf .ofms-pdf-footer{
+  height:15mm!important;
+  min-height:0!important;
+  max-height:15mm!important;
+  overflow:hidden!important;
+  padding:1.5mm 0 0!important;
+  align-items:flex-end!important;
+}
+.report-doc.ofms-a4-pdf .ofms-pdf-body,
+.report-doc.exact-pdf .ofms-pdf-body{
+  min-height:0!important;
+  height:auto!important;
+  max-height:212mm!important;
+  padding:0!important;
+  overflow:hidden!important;
+}
+.report-doc.ofms-a4-pdf .ofms-pdf-body > *,
+.report-doc.exact-pdf .ofms-pdf-body > *{
+  max-width:100%!important;
+}
+.ofms-a4-pdf .ofms-pdf-graph,
+.ofms-a4-pdf .interpretation,
+.ofms-a4-pdf .ofms-summary-cards,
+.ofms-a4-pdf .ofms-stat-strip,
+.ofms-a4-pdf .ofms-report-note,
+.ofms-a4-pdf .survey-focus-note,
+.ofms-a4-pdf .survey-summary-strip,
+.ofms-a4-pdf .priority-grid,
+.ofms-a4-pdf .notable-item{
+  break-inside:avoid!important;
+  page-break-inside:avoid!important;
+}
+.ofms-a4-pdf .ofms-pdf-graph{
+  max-height:96mm!important;
+  overflow:hidden!important;
+}
+.ofms-a4-pdf .area-performance-page .ofms-pdf-graph{
+  max-height:142mm!important;
+}
+.ofms-a4-pdf .priority-page .priority-grid{
+  max-height:132mm!important;
+  overflow:hidden!important;
+}
+.ofms-a4-pdf .notable-box{
+  max-height:178mm!important;
+  overflow:hidden!important;
+}
+.ofms-a4-pdf .notable-item{
+  max-height:40mm!important;
+  overflow:hidden!important;
+}
+.ofms-a4-pdf .ofms-graph-list,
+.ofms-a4-pdf .ofms-graph-split,
+.ofms-a4-pdf .ofms-graph-split > div{
+  min-height:0!important;
+  overflow:hidden!important;
+}
+.ofms-a4-pdf .ofms-pdf-body img,
+.ofms-a4-pdf .ofms-pdf-body svg,
+.ofms-a4-pdf .ofms-pdf-body canvas{
+  max-width:100%!important;
+  max-height:100%!important;
+}
+.ofms-a4-pdf .signatory-only-page .ofms-pdf-body{
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+  max-height:212mm!important;
+  overflow:visible!important;
+}
+@media print{
+  body.printing-report .report-doc.ofms-a4-pdf .ofms-pdf-page,
+  body.printing-report .report-doc.exact-pdf .ofms-pdf-page{
+    grid-template-rows:12mm minmax(0,212mm) 15mm!important;
+    row-gap:3mm!important;
+    padding:25.4mm!important;
+    overflow:hidden!important;
+  }
+  body.printing-report .report-doc.ofms-a4-pdf .ofms-pdf-body,
+  body.printing-report .report-doc.exact-pdf .ofms-pdf-body{
+    max-height:212mm!important;
+    overflow:hidden!important;
+  }
+}
