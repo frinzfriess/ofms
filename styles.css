@@ -2025,3 +2025,13 @@ textarea{
     height:22px!important;
   }
 }
+
+/* Keep login/app view switching authoritative on every screen size */
+.hidden,
+#authView.hidden,
+#appView.hidden,
+.app-shell.hidden,
+.auth-shell.hidden,
+.modal.hidden{
+  display:none!important;
+}
