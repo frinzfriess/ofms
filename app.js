@@ -2366,7 +2366,7 @@ function reportDoc(r){
     .slice(0,10);
   const remarkChunks=usableRemarks.length
     ? usableRemarks.reduce((chunks, remark, index)=>{
-        if(index % 4 === 0) chunks.push([]);
+        if(index % 5 === 0) chunks.push([]);
         chunks[chunks.length-1].push(remark);
         return chunks;
       },[])
@@ -2387,11 +2387,9 @@ function reportDoc(r){
     <h2>2. ${summativeTitle}</h2>
     ${narrativeParts.slice(0,2).map(x=>`<p>${escapeHtml(x)}</p>`).join('')}
     ${reportFocusNote(r)}
-  `,'summative-page'));
-  pages.push(ofmsPage(`
     <h2>3. Expanded Satisfaction Analysis</h2>
     ${narrativeParts.slice(2,6).map(x=>`<p>${escapeHtml(x)}</p>`).join('')}
-  `,'analysis-page'));
+  `,'summative-analysis-page'));
   pages.push(ofmsPage(`
     <h2>4. Key Survey Reading Points</h2>
     ${surveyAreaSummaryHtml(r)}
@@ -2401,31 +2399,27 @@ function reportDoc(r){
     <h2>5. Survey Trend Analysis</h2>
     ${trendGraphHtml(r)}
     ${interpretationBlock('Trend Interpretation',trendInterpretation(r).replace(/uploaded worksheet|worksheet|excel|xlsx/gi,'survey data'))}
-  `,'trend-page'));
-  pages.push(ofmsPage(`
     <h2>6. ${escapeHtml(secondaryTitle)}</h2>
     ${graphCounts(secondaryObj,secondaryTitle)}
     ${interpretationBlock(`${secondaryTitle} Interpretation`,graphInterpretation(secondaryObj,secondaryTitle))}
-  `,'secondary-profile-page'));
+  `,'trend-secondary-page'));
   pages.push(ofmsPage(`
     <h2>7. ${escapeHtml(profileTitle)}</h2>
     ${graphCounts(profileObj,profileTitle)}
     ${interpretationBlock(`${profileTitle} Interpretation`,graphInterpretation(profileObj,profileTitle))}
-  `,'profile-page'));
+    <h2>9. Priority and Strength Areas</h2>
+    ${priorityGraphHtml(r)}
+    <p>The priority graph separates lower-scoring areas from stronger areas. Lower-rated areas should be read as improvement points, while stronger areas may be sustained and used as reference points for future survey periods.</p>
+  `,'profile-priority-page'));
   pages.push(ofmsPage(`
     <h2>8. ${r.type==='job'?'Job Satisfaction Area Performance':'Client Satisfaction Area Performance'}</h2>
     ${graphItems(r)}
     ${interpretationBlock('Survey Area Interpretation',itemText)}
   `,'area-performance-page'));
-  pages.push(ofmsPage(`
-    <h2>9. Priority and Strength Areas</h2>
-    ${priorityGraphHtml(r)}
-    <p>The priority graph separates lower-scoring areas from stronger areas. Lower-rated areas should be read as improvement points, while stronger areas may be sustained and used as reference points for future survey periods.</p>
-  `,'priority-page'));
   remarkChunks.forEach((chunk, index)=>{
     pages.push(ofmsPage(`
       <h2>${index?'10. Notable Qualitative Remarks (continued)':'10. Notable Qualitative Remarks'}</h2>
-      ${notableRemarksHtml(r, chunk, index*4)}
+      ${notableRemarksHtml(r, chunk, index*5)}
     `,'remarks-page'));
   });
   pages.push(ofmsPage(`
