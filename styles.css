@@ -4187,3 +4187,76 @@ body.pdf-preview-open #reportModal .preview-scroll-paper .ofms-pdf-page{
     max-height:219mm!important;
   }
 }
+
+/* Final PDF overlap cleanup: section 3, remarks, and signatories */
+.ofms-a4-pdf .analysis-page .ofms-pdf-body{
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:flex-start!important;
+  gap:1mm!important;
+  overflow:hidden!important;
+}
+.ofms-a4-pdf .analysis-page .ofms-pdf-body p{
+  font-size:10.15pt!important;
+  line-height:1.13!important;
+  margin:.6mm 0!important;
+}
+.ofms-a4-pdf .remarks-page .ofms-pdf-body{
+  display:flex!important;
+  flex-direction:column!important;
+  overflow:hidden!important;
+}
+.ofms-a4-pdf .remarks-page .notable-box{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:.75mm!important;
+  max-height:205mm!important;
+  overflow:hidden!important;
+  align-content:start!important;
+}
+.ofms-a4-pdf .remarks-page .notable-item{
+  grid-template-columns:5.8mm 1fr!important;
+  gap:1mm!important;
+  padding:.85mm 1mm!important;
+  border-radius:.8mm!important;
+  max-height:18.6mm!important;
+  min-height:0!important;
+  overflow:hidden!important;
+}
+.ofms-a4-pdf .remarks-page .notable-item span{
+  width:5mm!important;
+  height:5mm!important;
+  font-size:7pt!important;
+}
+.ofms-a4-pdf .remarks-page .notable-item p{
+  font-size:8pt!important;
+  line-height:1.06!important;
+  margin:0!important;
+  text-align:left!important;
+  overflow:hidden!important;
+}
+.ofms-a4-pdf .signatory-only-page .ofms-pdf-body{
+  display:flex!important;
+  align-items:stretch!important;
+  justify-content:flex-start!important;
+  padding-top:34mm!important;
+  overflow:hidden!important;
+}
+.ofms-a4-pdf .signatory-only-page .sign-row{
+  margin-top:0!important;
+  break-inside:avoid!important;
+  page-break-inside:avoid!important;
+}
+.ofms-a4-pdf .signatory-only-page h2,
+.ofms-a4-pdf .signatory-only-page .memo-note{
+  display:none!important;
+}
+@media print{
+  body.printing-report .ofms-a4-pdf .remarks-page .notable-box{
+    max-height:205mm!important;
+  }
+  body.printing-report .ofms-a4-pdf .signatory-only-page .ofms-pdf-body{
+    padding-top:34mm!important;
+    overflow:hidden!important;
+  }
+}

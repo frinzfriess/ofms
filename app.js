@@ -2364,13 +2364,6 @@ function reportDoc(r){
     .map(x=>String(x||'').trim())
     .filter(x=>x && x!=='.' && x!=='-' && x.toLowerCase()!=='n/a')
     .slice(0,10);
-  const remarkChunks=usableRemarks.length
-    ? usableRemarks.reduce((chunks, remark, index)=>{
-        if(index % 5 === 0) chunks.push([]);
-        chunks[chunks.length-1].push(remark);
-        return chunks;
-      },[])
-    : [[]];
   const pages=[];
   const summativeTitle = r.type==='job'?'Summative Job Satisfaction Interpretation':'Summative Client Satisfaction Interpretation';
   pages.push(ofmsPage(`
@@ -2387,9 +2380,11 @@ function reportDoc(r){
     <h2>2. ${summativeTitle}</h2>
     ${narrativeParts.slice(0,2).map(x=>`<p>${escapeHtml(x)}</p>`).join('')}
     ${reportFocusNote(r)}
+  `,'summative-page'));
+  pages.push(ofmsPage(`
     <h2>3. Expanded Satisfaction Analysis</h2>
     ${narrativeParts.slice(2,6).map(x=>`<p>${escapeHtml(x)}</p>`).join('')}
-  `,'summative-analysis-page'));
+  `,'analysis-page'));
   pages.push(ofmsPage(`
     <h2>4. Key Survey Reading Points</h2>
     ${surveyAreaSummaryHtml(r)}
@@ -2416,15 +2411,11 @@ function reportDoc(r){
     ${graphItems(r)}
     ${interpretationBlock('Survey Area Interpretation',itemText)}
   `,'area-performance-page'));
-  remarkChunks.forEach((chunk, index)=>{
-    pages.push(ofmsPage(`
-      <h2>${index?'10. Notable Qualitative Remarks (continued)':'10. Notable Qualitative Remarks'}</h2>
-      ${notableRemarksHtml(r, chunk, index*5)}
-    `,'remarks-page'));
-  });
   pages.push(ofmsPage(`
-    <h2>Prepared and Certified By</h2>
-    <p class="memo-note">This page contains the signatory confirmation section for the survey result report.</p>
+    <h2>10. Notable Qualitative Remarks</h2>
+    ${notableRemarksHtml(r, usableRemarks, 0)}
+  `,'remarks-page'));
+  pages.push(ofmsPage(`
     ${signatoryHtml()}
   `,'signatory-only-page'));
   return `<article class="report-doc ofms-a4-pdf exact-pdf">${pages.join('')}</article>`;
@@ -2456,5 +2447,5 @@ function renderMoreInsightCards(){
 })();
 
 function signatoryPage(signatories){
-  return `<section class="pdf-page signatory-only-page">${pdfMiniHeader()}<h2>Prepared and Certified By</h2><p class="memo-note">This page contains the signatory confirmation section for the survey result report.</p>${signRow(signatories)}${pdfFooter()}</section>`;
+  return `<section class="pdf-page signatory-only-page">${pdfMiniHeader()}${signRow(signatories)}${pdfFooter()}</section>`;
 }
