@@ -49,6 +49,33 @@ function readSession(){
   }
 }
 function clearSession(){ localStorage.removeItem(SESSION_KEY); }
+function clearManualLoginFields(){
+  const username=$('#loginUsername');
+  const password=$('#loginPassword');
+  [username,password].forEach(input=>{
+    if(!input) return;
+    input.value='';
+    input.setAttribute('autocomplete', input.type==='password' ? 'new-password' : 'off');
+    input.setAttribute('readonly','readonly');
+  });
+}
+function hardenManualLoginFields(){
+  const loginInputs=[$('#loginUsername'),$('#loginPassword')].filter(Boolean);
+  loginInputs.forEach(input=>{
+    input.value='';
+    input.setAttribute('readonly','readonly');
+    const unlock=()=>input.removeAttribute('readonly');
+    input.addEventListener('focus', unlock);
+    input.addEventListener('pointerdown', unlock);
+    input.addEventListener('keydown', unlock);
+  });
+  [80,350,900].forEach(delay=>{
+    setTimeout(()=>{
+      if(document.activeElement && loginInputs.includes(document.activeElement)) return;
+      if(!$('#authView')?.classList.contains('hidden')) clearManualLoginFields();
+    }, delay);
+  });
+}
 function getSummary(r){
   const raw = r?.summary_json;
   if(!raw) return r || {};
@@ -235,6 +262,7 @@ async function saveReportToSupabase(report){
 function showAuth(which){
   $('#loginForm').classList.toggle('active', which==='login');
   $('#createForm').classList.toggle('active', which==='create');
+  if(which==='login') clearManualLoginFields();
 }
 $$('[data-auth]').forEach(b=>b.onclick=()=>showAuth(b.dataset.auth));
 
@@ -276,6 +304,7 @@ $('#createForm').onsubmit = async e => {
 $('#logoutBtn').onclick = async () => {
   await log('LOGOUT','User logged out','SESSION');
   state.currentUser=null; state.userRow=null; clearSession();
+  clearManualLoginFields();
   $('#appView').classList.add('hidden'); $('#authView').classList.remove('hidden');
 };
 
@@ -513,7 +542,7 @@ $('#excelFile').onchange = async (e)=>{
     validateSurveyDataset(importedRows, type);
     $('#reportTitle').value = type==='job'?'Job Satisfaction and Work Experience Survey':'Client Satisfaction Measurement Survey';
     $('#surveyType').value = type;
-    $('#preview').innerHTML = `<strong>${escapeHtml(file.name)}</strong><br>${importedRows.length} row(s) loaded. Detected: ${type==='job'?'Job Satisfaction':'Client Satisfaction Measurement'}. Data will be saved to Supabase when generated.`;
+    $('#preview').innerHTML = `<strong>${escapeHtml(file.name)}</strong><span>${importedRows.length} row(s) loaded</span><span>Detected: ${type==='job'?'Job Satisfaction':'Client Satisfaction Measurement'}</span><span>Ready to generate and save to Supabase.</span>`;
     await log('IMPORT', `${file.name} imported`, 'FILE', file.name);
   }catch(err){ toast(err.message); }
   finally{ clearBusy(); }
@@ -1435,6 +1464,7 @@ $('#generateBtn').onclick = async () => {
 $$('.ux-tile[data-go]').forEach(btn=>{ btn.onclick=()=>showPage(btn.dataset.go); });
 
 (async function init(){
+  hardenManualLoginFields();
   const remembered = readSession();
   if(remembered?.username){
     state.currentUser = remembered.username;

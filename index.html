@@ -24,12 +24,12 @@
         </div>
       </div>
 
-      <form id="loginForm" class="auth-form active">
+      <form id="loginForm" class="auth-form active" autocomplete="off">
         <div class="form-ribbon"><span>▣ Personnel Login</span><small>• Secured</small></div>
         <h2>Welcome back</h2>
         <p class="muted">Sign in to open the survey analytics workspace.</p>
-        <label>Username<input id="loginUsername" autocomplete="username" /></label>
-        <label>Password<input id="loginPassword" type="password" autocomplete="current-password" /></label>
+        <label>Username<input id="loginUsername" name="ofms_manual_user" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" /></label>
+        <label>Password<input id="loginPassword" name="ofms_manual_pass" type="password" autocomplete="new-password" data-lpignore="true" data-1p-ignore="true" data-form-type="other" /></label>
         <button class="primary" type="submit">Login to OFMS</button>
         <p class="switch-text">No account yet? <button type="button" data-auth="create">Create Account</button></p>
       </form>
@@ -157,15 +157,29 @@
       </section>
 
       <section id="import" class="page">
-        <div class="page-head"><div><h2>Import Excel</h2><p>Upload CSM or Job Satisfaction Excel responses, then generate a browser report.</p></div></div>
-        <div class="panel upload-panel">
-          <label class="file-drop"><input type="file" id="excelFile" accept=".xlsx,.xls,.csv" /><span>Choose Excel or CSV file</span><small>Uses SheetJS CDN for .xlsx parsing. CSV works directly.</small></label>
-          <div class="form-grid">
+        <div class="page-head import-page-head"><div><h2>Import Excel</h2><p>Upload only CSM or Job Satisfaction survey responses, then generate a browser report and PDF-ready summary.</p></div></div>
+        <div class="panel upload-panel import-modern-panel">
+          <div class="import-hero">
+            <div>
+              <span class="import-kicker">Survey source</span>
+              <h3>CSM and Job survey files only</h3>
+              <p>The system checks the selected spreadsheet for recognizable survey rating columns before report generation.</p>
+            </div>
+            <div class="import-mini-rules">
+              <span><b>.xlsx</b> Excel workbook</span>
+              <span><b>.xls</b> Legacy workbook</span>
+              <span><b>.csv</b> Direct CSV upload</span>
+            </div>
+          </div>
+          <label class="file-drop import-drop"><input type="file" id="excelFile" accept=".xlsx,.xls,.csv" /><span>Choose Excel or CSV file</span><small>CSM and Job Satisfaction files are accepted. Other survey formats will be rejected.</small></label>
+          <div class="form-grid import-form-grid">
             <label>Report Title<input id="reportTitle" placeholder="Auto-filled after import" /></label>
             <label>Survey Type<select id="surveyType"><option value="auto">Auto Detect</option><option value="csm">Client Satisfaction Measurement</option><option value="job">Job Satisfaction and Work Experience</option></select></label>
           </div>
-          <div id="preview" class="preview muted">No file imported yet.</div>
-          <button class="primary" id="generateBtn">Generate Report</button>
+          <div class="import-bottom">
+            <div id="preview" class="preview muted import-preview">No file imported yet.</div>
+            <button class="primary import-generate" id="generateBtn">Generate Report</button>
+          </div>
         </div>
         <footer class="footer"><img src="assets/rtu_logo.png"><img src="assets/ics_logo.png"><span>@2026 Office of the Adjutant, Philippine Army Feedback Monitoring System | Developed by the students of Institute of Computer Studies of Rizal Technological University — Frinz Euan Esguerra, Jayvette Cater, Danlie Dox Finez, Kurt Brian Garrovillas, Marvin Luis Alfonso Guevarra, Rhenz Stephen Respondo | For the Office of the Adjutant, Philippine Army.</span></footer>
       </section>

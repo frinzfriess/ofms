@@ -2,6 +2,148 @@
 :root{
   --blue:#2563eb;--blue2:#1d4ed8;--blue3:#60a5fa;--navy:#0b1220;--navy2:#111827;--bg:#f4f7fb;--panel:#fff;--muted:#64748b;--line:#e5e7eb;--green:#10b981;--orange:#f97316;--pink:#ec4899;--gold:#f59e0b;--text:#0f172a;--shadow:0 18px 45px rgba(15,23,42,.08)
 }
+
+/* Final import screen polish */
+#import .import-page-head{
+  margin-bottom:20px!important;
+}
+#import .import-modern-panel{
+  padding:0!important;
+  overflow:hidden!important;
+  border-radius:26px!important;
+  background:#fff!important;
+  border:1px solid rgba(148,163,184,.28)!important;
+  box-shadow:0 24px 70px rgba(15,23,42,.10)!important;
+}
+#import .import-hero{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(220px,320px)!important;
+  gap:20px!important;
+  align-items:stretch!important;
+  padding:24px!important;
+  background:linear-gradient(135deg,#f8fbff 0%,#eef7ff 58%,#f7fff9 100%)!important;
+  border-bottom:1px solid rgba(203,213,225,.75)!important;
+}
+#import .import-kicker{
+  display:inline-flex!important;
+  width:max-content!important;
+  max-width:100%!important;
+  padding:6px 10px!important;
+  border-radius:999px!important;
+  background:#e0f2fe!important;
+  color:#075985!important;
+  font-size:11px!important;
+  font-weight:900!important;
+  text-transform:uppercase!important;
+  letter-spacing:.08em!important;
+}
+#import .import-hero h3{
+  margin:12px 0 8px!important;
+  font-size:26px!important;
+  line-height:1.12!important;
+  color:#0f172a!important;
+}
+#import .import-hero p{
+  margin:0!important;
+  max-width:760px!important;
+  color:#52627a!important;
+  line-height:1.45!important;
+}
+#import .import-mini-rules{
+  display:grid!important;
+  gap:10px!important;
+  align-content:center!important;
+}
+#import .import-mini-rules span{
+  display:flex!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+  padding:12px 14px!important;
+  border-radius:16px!important;
+  background:rgba(255,255,255,.78)!important;
+  border:1px solid rgba(203,213,225,.78)!important;
+  color:#475569!important;
+  font-size:13px!important;
+  font-weight:750!important;
+}
+#import .import-mini-rules b{
+  color:#0f172a!important;
+}
+#import .import-drop{
+  margin:22px 24px 0!important;
+  min-height:180px!important;
+  border-radius:24px!important;
+  background:linear-gradient(180deg,#ffffff,#f8fbff)!important;
+  border:2px dashed #93c5fd!important;
+  color:#075bb5!important;
+}
+#import .import-drop span{
+  font-size:22px!important;
+  line-height:1.2!important;
+}
+#import .import-drop small{
+  max-width:560px!important;
+  line-height:1.45!important;
+}
+#import .import-form-grid{
+  padding:2px 24px 0!important;
+  grid-template-columns:minmax(0,1.35fr) minmax(220px,.65fr)!important;
+}
+#import .import-bottom{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  gap:16px!important;
+  align-items:stretch!important;
+  padding:20px 24px 24px!important;
+}
+#import .import-preview{
+  margin:0!important;
+  min-height:70px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+  border-radius:18px!important;
+  background:#f8fafc!important;
+  border:1px solid #dbeafe!important;
+  color:#52627a!important;
+  line-height:1.45!important;
+}
+#import .import-preview strong{
+  color:#0f172a!important;
+}
+#import .import-preview span{
+  display:block!important;
+  margin-top:2px!important;
+}
+#import .import-generate{
+  min-width:210px!important;
+  height:auto!important;
+  min-height:58px!important;
+  align-self:stretch!important;
+  border-radius:18px!important;
+}
+@media screen and (max-width:860px){
+  #import .import-hero,
+  #import .import-form-grid,
+  #import .import-bottom{
+    grid-template-columns:1fr!important;
+  }
+  #import .import-hero,
+  #import .import-bottom{
+    padding:18px!important;
+  }
+  #import .import-drop{
+    margin:18px!important;
+    min-height:150px!important;
+    padding:24px 18px!important;
+  }
+  #import .import-form-grid{
+    padding:0 18px!important;
+  }
+  #import .import-generate{
+    width:100%!important;
+  }
+}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}button,input,select{font:inherit}button{cursor:pointer}.hidden{display:none!important}
 /* AUTH */
 .auth-shell{min-height:100vh;display:grid;place-items:center;position:relative;overflow:hidden;background:radial-gradient(circle at 20% 15%,#dbeafe 0,#eff6ff 30%,#f8fafc 58%,#fff 100%)}
