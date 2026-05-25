@@ -1241,7 +1241,7 @@ function graphBar(values, title){
 }
 function graphItems(r){ const title = r.type==='job' ? 'Job Satisfaction Indicators Chart' : 'Client Satisfaction Indicators Chart'; return graphBar((r.items||[]).map((x,i)=>({label:x.code||('Q'+(i+1)), value:Number(x.mean).toFixed(2)})), title); }
 function graphCounts(obj,title){ return graphBar(Object.entries(obj||{}).map(([k,v])=>({label:k,value:v})), title); }
-function interpretationBlock(title, text){ return `<div class="interpretation"><strong>${escapeHtml(title)}</strong><p>${escapeHtml(text)}</p></div>`; }
+function interpretationBlock(title, text){ return `<div class="interpretation"><p>${escapeHtml(text)}</p></div>`; }
 function graphInterpretation(obj, label){
   const entries=Object.entries(obj||{}).sort((a,b)=>Number(b[1])-Number(a[1]));
   const total=entries.reduce((a,[,v])=>a+Number(v),0);
@@ -1250,10 +1250,15 @@ function graphInterpretation(obj, label){
   return `${top} recorded the highest count with ${count} response(s), representing ${(Number(count)/total*100).toFixed(2)}% of the detected ${label.toLowerCase()} entries. This distribution should be considered when interpreting the survey results because larger groups influence the overall picture more strongly.`;
 }
 function trendInterpretation(r){
-  if(!r.trend || r.trend.length<2) return 'Trend data is limited because the uploaded worksheet does not contain enough dated entries for period comparison. Future uploads with timestamped responses will strengthen trend interpretation.';
+  if(!r.trend || r.trend.length<2) return 'The trend graph currently shows only the available report volume, so it should be read as a baseline rather than a month-to-month movement. Future survey periods with valid response dates will make it possible to compare changes in participation and satisfaction more clearly.';
   const a=r.trend[r.trend.length-2], b=r.trend[r.trend.length-1];
   const move=b.responses-a.responses;
-  const meanMove = Number((b.mean||r.mean) - (a.mean||r.mean)).toFixed(2); return `Compared with ${a.month}, the latest month ${b.month} ${move>=0?'increased':'decreased'} in response volume to ${b.responses} from ${a.responses}. ${Number(meanMove)>=0?'Satisfaction improved':'Satisfaction declined'} to ${Number(b.mean||r.mean).toFixed(2)}/5.00 from ${Number(a.mean||r.mean).toFixed(2)}/5.00 (${Number(meanMove)>=0?'+':''}${meanMove} points). This ${Number(b.mean||r.mean)>=4?'indicates a strong':'indicates that the current survey result remains'} ${interpretationLabel(Number(b.mean||r.mean)).toLowerCase()}.`;
+  const latestMean=Number(b.mean||r.mean);
+  const previousMean=Number(a.mean||r.mean);
+  const meanMove = Number(latestMean - previousMean).toFixed(2);
+  const volumeDirection = move>=0 ? 'increased' : 'decreased';
+  const scoreDirection = Number(meanMove)>0 ? 'improved' : Number(meanMove)<0 ? 'declined' : 'remained unchanged';
+  return `The trend graph compares response volume across the latest detected months. From ${a.month} to ${b.month}, participation ${volumeDirection} from ${a.responses} to ${b.responses} response(s), a change of ${move>=0?'+':''}${move}. This means the latest month carries more weight in reading the current result because it represents the larger share of respondents. The satisfaction mean ${scoreDirection} at ${latestMean.toFixed(2)}/5.00 compared with ${previousMean.toFixed(2)}/5.00 (${Number(meanMove)>=0?'+':''}${meanMove} point(s)). Overall, the trend should be read as ${interpretationLabel(latestMean).toLowerCase()}, with the volume change considered when judging how representative the latest result is.`;
 }
 function signatoryHtml(){
   const p=pdfSignatories || {};
@@ -1808,14 +1813,14 @@ function reportDoc(r){
 /* FINAL PDF PAGING FIX 2026-05-24: A4 static page header/footer, no fixed overlap, graph-only */
 function ofmsGraph(values, title, opts={}){
   const clean=(values||[]).filter(v=>v && v.label!==undefined && v.value!==undefined && String(v.label).trim()!=='');
-  if(!clean.length) return `<div class="ofms-pdf-graph"><h3>${escapeHtml(title)}</h3><p class="ofms-empty">No graph data detected.</p></div>`;
+  if(!clean.length) return `<div class="ofms-pdf-graph"><p class="ofms-empty">No graph data detected.</p></div>`;
   const max=Math.max(...clean.map(v=>Number(v.value)||0),1);
   const row=v=>`<div class="ofms-graph-row"><span>${escapeHtml(String(v.label))}</span><b><i style="width:${Math.max(5,(Number(v.value)||0)/max*100).toFixed(1)}%"></i></b><em>${escapeHtml(String(v.value))}</em></div>`;
   if(opts.split){
     const half=Math.ceil(clean.length/2);
-    return `<div class="ofms-pdf-graph ofms-indicator-graph"><h3>${escapeHtml(title)}</h3><div class="ofms-graph-split"><div>${clean.slice(0,half).map(row).join('')}</div><div>${clean.slice(half).map(row).join('')}</div></div></div>`;
+    return `<div class="ofms-pdf-graph ofms-indicator-graph"><div class="ofms-graph-split"><div>${clean.slice(0,half).map(row).join('')}</div><div>${clean.slice(half).map(row).join('')}</div></div></div>`;
   }
-  return `<div class="ofms-pdf-graph"><h3>${escapeHtml(title)}</h3><div class="ofms-graph-list">${clean.map(row).join('')}</div></div>`;
+  return `<div class="ofms-pdf-graph"><div class="ofms-graph-list">${clean.map(row).join('')}</div></div>`;
 }
 function graphItems(r){
   const title=r.type==='job'?'Job Satisfaction Indicators Chart':'Client Satisfaction Indicators Chart';
@@ -2289,7 +2294,9 @@ function graphInterpretation(obj, label){
   const total=entries.reduce((a,[,v])=>a+Number(v),0);
   if(!entries.length || !total) return `No ${label.toLowerCase()} count was available for this survey report.`;
   const [top,count]=entries[0];
-  return `${top} recorded the highest count with ${count} response(s), equivalent to ${(Number(count)/total*100).toFixed(2)}% of the ${label.toLowerCase()} distribution. This profile is relevant because the largest group has the strongest influence on the overall satisfaction reading.`;
+  const share=(Number(count)/total*100).toFixed(2);
+  const rest=entries.slice(1,4).map(([k,v])=>`${k} with ${v} response(s)`).join(', ');
+  return `The graph shows how the ${label.toLowerCase()} responses are distributed across the detected categories. ${top} is the largest group with ${count} response(s), or ${share}% of the total ${total} response(s). ${rest?`The next visible groups are ${rest}, which provide supporting context for comparison. `:''}This distribution matters because the largest respondent group has the strongest influence on the overall satisfaction result, while smaller groups help identify whether the survey reading is broad-based or concentrated among specific respondent profiles.`;
 }
 function summaryCardsGraphOnly(r){
   const top=r.items?.[0], low=r.items?.[r.items.length-1];
@@ -2451,7 +2458,7 @@ function reportDoc(r){
   const secondaryTitle=r.type==='job'?'Assignment Status':'Service Distribution';
   const secondaryObj=r.type==='job'?r.assignment:(Object.keys(r.service||{}).length?r.service:r.customerType);
   const top=r.items?.[0], low=r.items?.[r.items.length-1];
-  const itemText=r.items?.length?`The survey area graph presents the comparative mean score of each measured ${r.type==='job'?'job-satisfaction area':'client-service area'}. ${cleanItemName(top.name)} received the highest score at ${Number(top.mean).toFixed(2)}/5.00, while ${cleanItemName(low.name)} received the lowest score at ${Number(low.mean).toFixed(2)}/5.00. This graph identifies the strongest area to sustain and the lowest area to review.`:'No rating survey areas were available for this report.';
+  const itemText=r.items?.length?`The graph ranks every measured ${r.type==='job'?'job-satisfaction':'client-service'} area by mean score, making it easier to see the spread between strong performance and priority concerns. ${cleanItemName(top.name)} is the highest-rated area at ${Number(top.mean).toFixed(2)}/5.00, which means respondents viewed this area as a strength that should be sustained. ${cleanItemName(low.name)} is the lowest-rated area at ${Number(low.mean).toFixed(2)}/5.00, showing the clearest point for review. The distance between the highest and lowest scores is ${surveySpread(r).toFixed(2)} point(s), so the graph should be read not only as a ranking but as evidence of which areas are stable, which areas need attention, and where management follow-up should be prioritized.`:'No rating survey areas were available for this report.';
   const narrativeParts=expandedSurveyOnlyNarrative(r).filter(x=>!/(worksheet|excel|xlsx|uploaded|system)/i.test(x));
   const usableRemarks=(r.remarks||[])
     .map(x=>String(x||'').trim())
