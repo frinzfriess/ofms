@@ -4724,3 +4724,189 @@ body.pdf-preview-open #reportModal .preview-scroll-paper .ofms-pdf-page{
     padding-top:0!important;
   }
 }
+
+/* Final spacious PDF pass: restore footer logos and add readable section rhythm */
+.report-doc.ofms-a4-pdf .ofms-pdf-page,
+.report-doc.exact-pdf .ofms-pdf-page{
+  grid-template-rows:15mm minmax(0,202mm) 22mm!important;
+  row-gap:3.2mm!important;
+  padding:25.4mm!important;
+}
+.report-doc.ofms-a4-pdf .ofms-pdf-header,
+.report-doc.exact-pdf .ofms-pdf-header{
+  height:15mm!important;
+  max-height:15mm!important;
+  padding-top:2.4mm!important;
+}
+.report-doc.ofms-a4-pdf .ofms-pdf-footer,
+.report-doc.exact-pdf .ofms-pdf-footer{
+  display:flex!important;
+  height:22mm!important;
+  max-height:22mm!important;
+  padding-top:2.2mm!important;
+  border-top:1px solid #dbeafe!important;
+  overflow:visible!important;
+}
+.report-doc.ofms-a4-pdf .ofms-pdf-body,
+.report-doc.exact-pdf .ofms-pdf-body,
+.ofms-a4-pdf .packed-page .ofms-pdf-body,
+.ofms-a4-pdf .single-section-page .ofms-pdf-body{
+  max-height:202mm!important;
+  gap:3.2mm!important;
+  overflow:hidden!important;
+}
+.ofms-a4-pdf .ofms-pdf-logos{
+  display:grid!important;
+  grid-template-columns:46mm 1fr 30mm!important;
+  align-items:center!important;
+  gap:4mm!important;
+  width:100%!important;
+  min-height:16mm!important;
+}
+.ofms-a4-pdf .ofms-pdf-logos img{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  max-width:none!important;
+  max-height:none!important;
+  object-fit:contain!important;
+  -webkit-print-color-adjust:exact!important;
+  print-color-adjust:exact!important;
+}
+.ofms-a4-pdf .ofms-pdf-logos img.strip{
+  width:45mm!important;
+  height:14mm!important;
+  justify-self:start!important;
+}
+.ofms-a4-pdf .ofms-pdf-logos img.atr{
+  width:22mm!important;
+  height:16mm!important;
+  justify-self:end!important;
+}
+.ofms-a4-pdf .ofms-pdf-logos strong{
+  display:block!important;
+  font-size:12pt!important;
+  line-height:1.05!important;
+  text-align:center!important;
+  font-weight:900!important;
+}
+.ofms-a4-pdf .pdf-section-block{
+  padding-bottom:1.4mm!important;
+}
+.ofms-a4-pdf .packed-page .pdf-section-block + .pdf-section-block,
+.ofms-a4-pdf .single-section-page .pdf-section-block + .pdf-section-block{
+  margin-top:2.2mm!important;
+  padding-top:1.6mm!important;
+  border-top:1px solid #e5efff!important;
+}
+.ofms-a4-pdf .packed-page .pdf-section-block h2,
+.ofms-a4-pdf .single-section-page .pdf-section-block h2{
+  font-size:12.4pt!important;
+  line-height:1.16!important;
+  margin:1.8mm 0 1.25mm!important;
+}
+.ofms-a4-pdf .packed-page .pdf-section-block p,
+.ofms-a4-pdf .single-section-page .pdf-section-block p{
+  font-size:12pt!important;
+  line-height:1.24!important;
+  margin:1.05mm 0!important;
+}
+.ofms-a4-pdf .packed-page .ofms-command-head,
+.ofms-a4-pdf .single-section-page .ofms-command-head{
+  margin:0 0 3mm!important;
+}
+.ofms-a4-pdf .packed-page .ofms-memo-line,
+.ofms-a4-pdf .packed-page .ofms-memo,
+.ofms-a4-pdf .single-section-page .ofms-memo-line,
+.ofms-a4-pdf .single-section-page .ofms-memo{
+  margin:1.1mm 0!important;
+}
+.ofms-a4-pdf .packed-page .ofms-summary-cards,
+.ofms-a4-pdf .single-section-page .ofms-summary-cards{
+  gap:1.25mm!important;
+  margin:1.6mm 0 2.2mm!important;
+}
+.ofms-a4-pdf .packed-page .ofms-summary-cards div,
+.ofms-a4-pdf .single-section-page .ofms-summary-cards div{
+  min-height:9.2mm!important;
+  padding:1.35mm 1.5mm!important;
+}
+.ofms-a4-pdf .packed-page .ofms-stat-strip,
+.ofms-a4-pdf .single-section-page .ofms-stat-strip{
+  gap:1.25mm!important;
+  margin:1.6mm 0 2mm!important;
+}
+.ofms-a4-pdf .packed-page .ofms-report-note,
+.ofms-a4-pdf .packed-page .survey-focus-note,
+.ofms-a4-pdf .single-section-page .ofms-report-note,
+.ofms-a4-pdf .single-section-page .survey-focus-note{
+  margin:1.5mm 0 2mm!important;
+  padding:1.55mm 1.8mm!important;
+}
+.ofms-a4-pdf .packed-page .survey-summary-strip,
+.ofms-a4-pdf .single-section-page .survey-summary-strip{
+  gap:1.45mm!important;
+  margin:1.6mm 0 2.1mm!important;
+}
+.ofms-a4-pdf .packed-page .ofms-pdf-graph,
+.ofms-a4-pdf .single-section-page .ofms-pdf-graph{
+  padding:1.8mm 2.2mm!important;
+  margin:1.8mm auto 2.2mm!important;
+  max-height:76mm!important;
+}
+.ofms-a4-pdf .packed-page .area-performance-page .ofms-pdf-graph,
+.ofms-a4-pdf .single-section-page.area-performance-page .ofms-pdf-graph{
+  max-height:132mm!important;
+}
+.ofms-a4-pdf .packed-page .ofms-pdf-graph h3,
+.ofms-a4-pdf .single-section-page .ofms-pdf-graph h3{
+  font-size:10.5pt!important;
+  margin:0 0 1.25mm!important;
+}
+.ofms-a4-pdf .packed-page .ofms-graph-list,
+.ofms-a4-pdf .single-section-page .ofms-graph-list{
+  gap:.65mm!important;
+}
+.ofms-a4-pdf .packed-page .ofms-graph-row,
+.ofms-a4-pdf .single-section-page .ofms-graph-row{
+  grid-template-columns:34mm 1fr 10mm!important;
+  gap:1mm!important;
+  font-size:8.2pt!important;
+}
+.ofms-a4-pdf .packed-page .ofms-graph-row b,
+.ofms-a4-pdf .single-section-page .ofms-graph-row b{
+  height:2.15mm!important;
+}
+.ofms-a4-pdf .packed-page .interpretation,
+.ofms-a4-pdf .single-section-page .interpretation{
+  margin:1.4mm 0 1.8mm!important;
+}
+.ofms-a4-pdf .packed-page .interpretation p,
+.ofms-a4-pdf .single-section-page .interpretation p{
+  font-size:12pt!important;
+  line-height:1.22!important;
+}
+.ofms-a4-pdf .packed-page .notable-box,
+.ofms-a4-pdf .single-section-page .notable-box{
+  gap:1.15mm!important;
+}
+.ofms-a4-pdf .packed-page .notable-item,
+.ofms-a4-pdf .single-section-page .notable-item{
+  padding:1.25mm 1.4mm!important;
+  max-height:31mm!important;
+}
+@media print{
+  body.printing-report .report-doc.ofms-a4-pdf .ofms-pdf-page,
+  body.printing-report .report-doc.exact-pdf .ofms-pdf-page{
+    grid-template-rows:15mm minmax(0,202mm) 22mm!important;
+    row-gap:3.2mm!important;
+  }
+  body.printing-report .ofms-a4-pdf .ofms-pdf-body{
+    max-height:202mm!important;
+  }
+  body.printing-report .ofms-a4-pdf .ofms-pdf-logos img{
+    display:block!important;
+    visibility:visible!important;
+    opacity:1!important;
+  }
+}

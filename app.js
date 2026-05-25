@@ -2372,7 +2372,7 @@ function reportDoc(r){
   const pdfTextMm=(text)=>Math.max(6, Math.ceil(String(text||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().length/95)*5);
   const pdfParaMm=(arr)=>arr.reduce((sum,x)=>sum+pdfTextMm(x),0);
   const graphMm=(count, split=false)=>split ? 16 + Math.ceil(Math.max(1,count)/2)*3.6 : 16 + Math.max(1,count)*3.8;
-  const PDF_BODY_SAFE_MM=196;
+  const PDF_BODY_SAFE_MM=150;
   const sectionBlock=(cls, title, body, estimate)=>({
     cls,
     estimate,
