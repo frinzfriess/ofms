@@ -60,7 +60,7 @@ function toUiReport(row){
   return {
     id: row.id,
     title: row.title || s.title || 'Survey Report',
-    type: s.type || s.survey_type || detectType([], row.title || ''),
+    type: s.type || s.survey_type || detectType([], row.title || '') || 'csm',
     created: row.uploaded_at || row.created || s.created || nowISO(),
     responses: Number(row.total_responses ?? s.total_responses ?? s.responses ?? 0),
     mean: Number(s.overall_mean ?? s.mean ?? 0),
@@ -510,6 +510,7 @@ $('#excelFile').onchange = async (e)=>{
       const buf=await file.arrayBuffer(); const wb=XLSX.read(buf,{type:'array'}); const ws=wb.Sheets[wb.SheetNames[0]]; importedRows=XLSX.utils.sheet_to_json(ws,{defval:''});
     }
     const type=detectType(importedRows, file.name);
+    validateSurveyDataset(importedRows, type);
     $('#reportTitle').value = type==='job'?'Job Satisfaction and Work Experience Survey':'Client Satisfaction Measurement Survey';
     $('#surveyType').value = type;
     $('#preview').innerHTML = `<strong>${escapeHtml(file.name)}</strong><br>${importedRows.length} row(s) loaded. Detected: ${type==='job'?'Job Satisfaction':'Client Satisfaction Measurement'}. Data will be saved to Supabase when generated.`;
@@ -522,8 +523,24 @@ function parseCSV(text){
   const headers=rows.shift()||[]; return rows.map(r=>Object.fromEntries(headers.map((h,i)=>[h,r[i]||''])));
 }
 function detectType(rows=[], name=''){
-  const headers=Object.keys(rows[0]||{}).join(' ').toLowerCase()+ ' ' + name.toLowerCase();
-  return /job|work experience|years in service|promotion|supervisor|paperwork|pride/.test(headers) ? 'job' : 'csm';
+  const sample=rows[0]||{};
+  const headers=Object.keys(sample).join(' ').toLowerCase()+ ' ' + name.toLowerCase();
+  const hasJobRatings=detectRatingColumns(sample,'job').length>0;
+  const hasCsmRatings=detectRatingColumns(sample,'csm').length>0;
+  if(hasJobRatings || /job|work experience|years in service|promotion|supervisor|paperwork|pride/.test(headers)) return 'job';
+  if(hasCsmRatings || /csm|client satisfaction|customer survey|sqd|citizen charter/.test(headers)) return 'csm';
+  return '';
+}
+function validateSurveyDataset(rows, type){
+  if(!rows.length) throw new Error('Please import a CSM or Job survey Excel/CSV file before generating a report.');
+  if(!['job','csm'].includes(type)) throw new Error('Only CSM and Job Satisfaction survey files are supported.');
+  const ratingCols=detectRatingColumns(rows[0]||{}, type);
+  if(!ratingCols.length){
+    throw new Error(type==='job'
+      ? 'This file does not contain recognizable Job Satisfaction question columns. Please upload a Job Satisfaction and Work Experience survey file.'
+      : 'This file does not contain recognizable CSM SQD columns. Please upload a Client Satisfaction Measurement survey file.');
+  }
+  return ratingCols;
 }
 function normKey(k){ return String(k||'').toLowerCase().replace(/[^a-z0-9]+/g,''); }
 function findCol(row, patterns){
@@ -706,6 +723,7 @@ $('#generateBtn').onclick = async () => {
   setBusy('Generating complete survey report...');
   try{
     const type=$('#surveyType').value==='auto'?detectType(importedRows, importedFileName):$('#surveyType').value;
+    validateSurveyDataset(importedRows, type);
     const title=$('#reportTitle').value.trim() || surveyLabel(type);
     const draft=analyzeRows(importedRows, type, title);
     const saved = await saveReportToSupabase(draft);
@@ -1401,6 +1419,7 @@ $('#generateBtn').onclick = async () => {
   setBusy('Generating complete survey report...');
   try{
     const type=$('#surveyType').value==='auto'?detectType(importedRows, importedFileName):$('#surveyType').value;
+    validateSurveyDataset(importedRows, type);
     const title=$('#reportTitle').value.trim() || surveyLabel(type);
     const draft=analyzeRows(importedRows, type, title);
     const saved = await saveReportToSupabase(draft);
@@ -2421,19 +2440,122 @@ function distinctSurveyBasis(r){
   }
   return `<div class="ofms-report-note"><strong>Client Satisfaction Report Basis</strong><p>This report is interpreted as a client service experience survey. The reading focuses on service access, responsiveness, timeliness, communication, clarity of assistance, courtesy, reliability, and client/service profile. The profile and service distributions are used to understand which client groups or service areas shaped the satisfaction result.</p></div>`;
 }
+function reportHashSeed(r, salt=''){
+  const text=[
+    r.title, r.type, r.created, r._pdfRunSeed, r.responses, r.mean?.toFixed?.(3), r.satisfaction?.toFixed?.(3),
+    coverageFromReport(r), (r.items||[]).map(x=>`${x.code}:${x.mean}`).join('|'),
+    (r.remarks||[]).slice(0,5).join('|'), salt
+  ].join('::');
+  let h=0;
+  for(let i=0;i<text.length;i++) h=(Math.imul(31,h)+text.charCodeAt(i))|0;
+  return Math.abs(h);
+}
+function reportPick(r, salt, options){
+  return options[reportHashSeed(r,salt)%options.length];
+}
+function countSummary(obj, label){
+  const entries=Object.entries(obj||{}).filter(([,v])=>Number(v)>0).sort((a,b)=>Number(b[1])-Number(a[1]));
+  const total=entries.reduce((sum,[,v])=>sum+Number(v),0);
+  if(!entries.length || !total) return `No ${label.toLowerCase()} count was detected in the provided survey data.`;
+  const lead=entries[0];
+  const next=entries.slice(1,3).map(([k,v])=>`${k} (${v})`).join(', ');
+  return `${lead[0]} accounts for ${lead[1]} of ${total} response(s), or ${(Number(lead[1])/total*100).toFixed(2)}%${next?`, followed by ${next}`:''}.`;
+}
+function aiStyleSummativeNarrative(r){
+  const top=r.items?.[0]||null;
+  const low=r.items?.[r.items.length-1]||null;
+  const lower=(r.items||[]).filter(x=>Number(x.mean)<4);
+  const strong=(r.items||[]).filter(x=>Number(x.mean)>=4);
+  const remarks=(r.remarks||[]).map(x=>String(x||'').trim()).filter(x=>x && x!=='.' && x!=='-' && x.toLowerCase()!=='n/a');
+  const band=satisfactionBand(r.mean);
+  const label=interpretationLabel(r.mean);
+  const surveyName=surveyLabel(r.type);
+  const spread=top&&low?Number(top.mean-low.mean).toFixed(2):'0.00';
+  const profileObj=r.type==='job'?r.years:(Object.keys(r.gender||{}).length?r.gender:r.customerType);
+  const secondaryObj=r.type==='job'?r.assignment:(Object.keys(r.service||{}).length?r.service:r.customerType);
+  const profileLabel=r.type==='job'?'years in service':'respondent profile';
+  const secondaryLabel=r.type==='job'?'assignment status':'service distribution';
+  const opening=reportPick(r,'opening',[
+    `This summative report is generated from the provided ${surveyName} data for ${coverageFromReport(r)}. It reads ${r.responses} valid response(s), ${r.items?.length||0} measured area(s), an overall mean of ${r.mean.toFixed(2)}/5.00, and a satisfaction level of ${r.satisfaction.toFixed(2)}%. The resulting interpretation is ${label}, which places the survey under ${band}.`,
+    `For the covered period ${coverageFromReport(r)}, the provided ${surveyName} dataset produced ${r.responses} valid response(s) and ${r.items?.length||0} scored area(s). The computed mean is ${r.mean.toFixed(2)}/5.00 with ${r.satisfaction.toFixed(2)}% satisfaction, giving the report a ${label} reading under the ${band} band.`,
+    `The report summarizes only the submitted ${surveyName} responses for ${coverageFromReport(r)}. Based on ${r.responses} valid response(s), the survey reached a weighted mean of ${r.mean.toFixed(2)}/5.00 and ${r.satisfaction.toFixed(2)}% satisfaction, interpreted as ${label}.`
+  ]);
+  const scoreReading=top&&low?reportPick(r,'score',[
+    `The score pattern is led by ${cleanItemName(top.name)} at ${Number(top.mean).toFixed(2)}/5.00, while ${cleanItemName(low.name)} marks the lowest point at ${Number(low.mean).toFixed(2)}/5.00. The ${spread}-point distance between them shows how much the strongest and weakest areas differ inside the same survey period.`,
+    `The strongest area is ${cleanItemName(top.name)} (${Number(top.mean).toFixed(2)}/5.00), and the main review point is ${cleanItemName(low.name)} (${Number(low.mean).toFixed(2)}/5.00). This contrast gives the report its priority direction because it separates sustainment areas from areas that need closer review.`,
+    `The highest and lowest measured areas are ${cleanItemName(top.name)} and ${cleanItemName(low.name)}, with scores of ${Number(top.mean).toFixed(2)} and ${Number(low.mean).toFixed(2)} respectively. This spread should guide the reading of both strengths and improvement needs.`
+  ]):`No complete area ranking was detected, so the summative reading relies on the available overall score, response count, and profile distributions.`;
+  const priority=lower.length?reportPick(r,'priority',[
+    `The areas below the 4.00 review benchmark are ${topListText(lower,6)}. These are the main priority points because they pull the overall rating downward and should be checked against the respondent profile and written remarks.`,
+    `Priority attention should be placed on ${topListText(lower,6)}. Their scores indicate where the provided data shows weaker experience, process concerns, or service gaps that may require follow-up action.`,
+    `The lower-rated cluster consists of ${topListText(lower,6)}. These items should be treated as evidence-based review points rather than general assumptions, since they come directly from the submitted survey responses.`
+  ]):reportPick(r,'priority-clear',[
+    `No measured area fell below the 4.00 review benchmark. The report should therefore focus on sustaining the current result while continuing to monitor future submissions for movement.`,
+    `The dataset does not show a below-benchmark cluster. This means the summative reading should emphasize consistency, sustainment, and continued monitoring rather than urgent corrective action.`
+  ]);
+  const strengths=strong.length?reportPick(r,'strengths',[
+    `The stronger areas include ${topListText(strong,6)}. These areas form the positive side of the report and can be used as reference points when preserving practices that respondents rated favorably.`,
+    `Positive performance is visible in ${topListText(strong,6)}. These items should be sustained because they help stabilize the overall satisfaction result.`,
+    `The report also identifies strengths in ${topListText(strong,6)}. These are not only high scores; they are practical indicators of what respondents experienced more favorably.`
+  ]):`No distinct high-scoring group was detected from the scored survey areas.`;
+  const profile=reportPick(r,'profile',[
+    `The ${secondaryLabel} result shows ${countSummary(secondaryObj, secondaryLabel)} The ${profileLabel} result shows ${countSummary(profileObj, profileLabel)} These distributions explain whose responses shaped the report most strongly.`,
+    `Respondent composition gives context to the score reading. For ${secondaryLabel}, ${countSummary(secondaryObj, secondaryLabel)} For ${profileLabel}, ${countSummary(profileObj, profileLabel)} This helps determine whether the result is broad or concentrated in a specific group.`,
+    `The profile side of the report should be read with the scores. ${countSummary(secondaryObj, secondaryLabel)} ${countSummary(profileObj, profileLabel)} Larger groups have more influence on the overall result, while smaller groups provide comparison points.`
+  ]);
+  const trend=reportPick(r,'trend',[
+    `${trendInterpretation(r)} This trend reading is included only when date information is available from the submitted responses and should be treated as supporting evidence for the current report.`,
+    `${trendInterpretation(r)} The trend does not replace the overall mean; it explains whether response volume and monthly movement add weight to the interpretation.`,
+    `${trendInterpretation(r)} This helps separate score interpretation from participation movement within the same submitted survey data.`
+  ]);
+  const remarkLine=remarks.length?reportPick(r,'remarks',[
+    `The report includes ${remarks.length} usable written remark(s). These comments should be reviewed beside the lower-rated areas because they may explain the specific experience behind the numerical scores.`,
+    `${remarks.length} written remark(s) were available for qualitative reading. They should be used to support, clarify, or validate the score-based priorities identified in the graphs.`,
+    `Qualitative support is present through ${remarks.length} written remark(s). These remarks can help translate the score movement into concrete issues or positive experiences.`
+  ]):reportPick(r,'no-remarks',[
+    `No usable written remarks were detected, so the summative interpretation relies on the scored items, response counts, profile distribution, and trend data.`,
+    `Because no usable written remarks were provided, the report remains score-led and profile-led, with no qualitative statements added beyond the submitted survey data.`
+  ]);
+  return [opening, scoreReading, priority, strengths, profile, trend, remarkLine];
+}
+function surveyOnlyNarrative(r){
+  return aiStyleSummativeNarrative(r);
+}
 function expandedSurveyOnlyNarrative(r){
   const base=surveyOnlyNarrative(r).filter(x=>!/(worksheet|excel|xlsx|uploaded|system)/i.test(x));
   const top=r.items?.[0], low=r.items?.[r.items.length-1];
   const below=(r.items||[]).filter(x=>Number(x.mean)<4);
   const strong=(r.items||[]).filter(x=>Number(x.mean)>=4);
   const extra=[];
-  extra.push(`The satisfaction percentage of ${r.satisfaction.toFixed(2)}% should be read together with the weighted mean of ${r.mean.toFixed(2)}/5.00. The percentage gives a quick view of the satisfaction level, while the mean score gives a more exact rating position across the five-point scale.`);
-  if(top&&low) extra.push(`The strongest-to-lowest score gap is ${surveySpread(r).toFixed(2)} point(s). A small gap means the survey areas are relatively consistent, while a wider gap means the overall result is shaped by a clearer difference between strong areas and review areas.`);
-  if(strong.length) extra.push(`${r.type==='job'?'Workplace':'Service'} strengths are visible in ${topListText(strong,5)}. These areas should be monitored as positive reference points because they support the overall satisfaction rating.`);
-  if(below.length) extra.push(`Areas below the 4.00 review benchmark are ${topListText(below,7)}. These areas are important because they show where the satisfaction result may be improved in the next reporting cycle.`);
-  extra.push(r.type==='job'
-    ? `For job satisfaction, the report should be used to understand the connection between personnel experience, assignment context, length of service, and the specific workplace areas that respondents rated higher or lower.`
-    : `For client satisfaction, the report should be used to understand the connection between client profile, service type, service delivery experience, and the specific service areas that respondents rated higher or lower.`);
+  extra.push(reportPick(r,'percent-extra',[
+    `The ${r.satisfaction.toFixed(2)}% satisfaction result should be read together with the ${r.mean.toFixed(2)}/5.00 weighted mean. The percentage gives a quick summary, while the mean score shows the exact position of the report on the five-point scale.`,
+    `The overall percentage and weighted mean tell the same result from different angles: ${r.satisfaction.toFixed(2)}% gives the broad satisfaction level, and ${r.mean.toFixed(2)}/5.00 gives the score position used for interpretation.`,
+    `For this report, the weighted mean of ${r.mean.toFixed(2)}/5.00 is the main rating basis, while the ${r.satisfaction.toFixed(2)}% satisfaction figure helps communicate the result in percentage form.`
+  ]));
+  if(top&&low) extra.push(reportPick(r,'spread-extra',[
+    `The strongest-to-lowest gap is ${surveySpread(r).toFixed(2)} point(s), from ${cleanItemName(top.name)} to ${cleanItemName(low.name)}. This gap shows whether the report is shaped by a consistent pattern or by a sharp divide between high and low areas.`,
+    `A ${surveySpread(r).toFixed(2)}-point spread separates the highest and lowest measured areas. This difference helps identify whether improvement should be broad or focused on a smaller set of weaker items.`,
+    `The distance between ${cleanItemName(top.name)} and ${cleanItemName(low.name)} is ${surveySpread(r).toFixed(2)} point(s), which gives the report its main contrast between sustainment and review areas.`
+  ]));
+  if(strong.length) extra.push(reportPick(r,'strong-extra',[
+    `${r.type==='job'?'Workplace':'Service'} strengths are visible in ${topListText(strong,5)}. These should be treated as sustainment points because they support the overall satisfaction result.`,
+    `The higher-rated side of the report is represented by ${topListText(strong,5)}. These areas show what respondents experienced more positively in the submitted survey data.`,
+    `${topListText(strong,5)} form the strongest cluster in this report and can be used as practical reference points for maintaining current performance.`
+  ]));
+  if(below.length) extra.push(reportPick(r,'below-extra',[
+    `The below-benchmark areas are ${topListText(below,7)}. These should receive closer review because they mark the clearest opportunities for improvement in this report.`,
+    `${topListText(below,7)} are the main improvement signals from the submitted survey responses. These should be compared with respondent profile and written remarks before deciding follow-up action.`,
+    `The lower-scoring areas, particularly ${topListText(below,7)}, identify where the report suggests review, clarification, or intervention may be needed.`
+  ]));
+  extra.push(reportPick(r,'closing-extra', r.type==='job' ? [
+    `The final reading should connect personnel experience, assignment status, years in service, high-scoring workplace areas, and low-scoring workplace areas into one evidence-based view.`,
+    `For this Job Satisfaction report, the strongest interpretation comes from reading the work-experience scores together with assignment and service-length patterns.`,
+    `This report should be used as a personnel-experience summary: the scores identify what to sustain and what to review, while the profile data shows whose responses shaped the result.`
+  ] : [
+    `The final reading should connect client profile, service availed, high-scoring service areas, and low-scoring service areas into one evidence-based service view.`,
+    `For this CSM report, the strongest interpretation comes from reading service scores together with client and service-profile patterns.`,
+    `This report should be used as a client-experience summary: the scores identify what service practices to sustain and what transaction points may need review.`
+  ]));
   return [...base, ...extra];
 }
 function priorityNarrative(r){
@@ -2451,6 +2573,7 @@ function priorityNarrative(r){
     : `No service area fell into a clear low-priority group. The higher-rated areas, including ${higherText || 'the strongest survey items'}, should be sustained as good service practices and monitored in future reporting cycles.`;
 }
 function reportDoc(r){
+  r._pdfRunSeed = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const reportDate=new Date(r.created).toLocaleDateString('en-PH',{day:'2-digit',month:'long',year:'numeric'});
   const pdfTitle=pdfSubjectTitle(r);
   const profileObj=r.type==='job'?r.years:(Object.keys(r.gender||{}).length?r.gender:r.customerType);
