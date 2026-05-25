@@ -4910,3 +4910,234 @@ body.pdf-preview-open #reportModal .preview-scroll-paper .ofms-pdf-page{
     opacity:1!important;
   }
 }
+
+/* Final requested PDF grouping: sections 5-7 and 8-9 on single pages */
+.ofms-a4-pdf .sections-5-7-page .ofms-pdf-body,
+.ofms-a4-pdf .sections-8-9-page .ofms-pdf-body{
+  gap:1.55mm!important;
+}
+.ofms-a4-pdf .sections-5-7-page .pdf-section-block + .pdf-section-block,
+.ofms-a4-pdf .sections-8-9-page .pdf-section-block + .pdf-section-block{
+  margin-top:1.2mm!important;
+  padding-top:1mm!important;
+}
+.ofms-a4-pdf .sections-5-7-page .pdf-section-block h2,
+.ofms-a4-pdf .sections-8-9-page .pdf-section-block h2{
+  font-size:11.6pt!important;
+  line-height:1.1!important;
+  margin:1mm 0 .75mm!important;
+}
+.ofms-a4-pdf .sections-5-7-page .ofms-pdf-graph{
+  max-height:38mm!important;
+  padding:1mm 1.4mm!important;
+  margin:.8mm auto 1mm!important;
+}
+.ofms-a4-pdf .sections-8-9-page .area-performance-page .ofms-pdf-graph{
+  max-height:106mm!important;
+}
+.ofms-a4-pdf .sections-5-7-page .ofms-pdf-graph h3,
+.ofms-a4-pdf .sections-8-9-page .ofms-pdf-graph h3{
+  font-size:9pt!important;
+  margin:0 0 .65mm!important;
+}
+.ofms-a4-pdf .sections-5-7-page .ofms-graph-list,
+.ofms-a4-pdf .sections-8-9-page .ofms-graph-list{
+  gap:.32mm!important;
+}
+.ofms-a4-pdf .sections-5-7-page .ofms-graph-row,
+.ofms-a4-pdf .sections-8-9-page .ofms-graph-row{
+  grid-template-columns:26mm 1fr 8mm!important;
+  gap:.65mm!important;
+  font-size:7pt!important;
+}
+.ofms-a4-pdf .sections-5-7-page .ofms-graph-row b,
+.ofms-a4-pdf .sections-8-9-page .ofms-graph-row b{
+  height:1.45mm!important;
+}
+.ofms-a4-pdf .sections-5-7-page .interpretation,
+.ofms-a4-pdf .sections-8-9-page .interpretation{
+  margin:.6mm 0 .85mm!important;
+}
+.ofms-a4-pdf .sections-5-7-page .interpretation strong,
+.ofms-a4-pdf .sections-8-9-page .interpretation strong{
+  font-size:10pt!important;
+}
+.ofms-a4-pdf .sections-5-7-page .interpretation p,
+.ofms-a4-pdf .sections-8-9-page .interpretation p,
+.ofms-a4-pdf .sections-8-9-page .priority-page p{
+  font-size:10.2pt!important;
+  line-height:1.12!important;
+  margin:.45mm 0!important;
+}
+.ofms-a4-pdf .sections-8-9-page .priority-grid{
+  gap:.75mm!important;
+  margin:.7mm 0 .9mm!important;
+  max-height:76mm!important;
+}
+.ofms-a4-pdf .sections-8-9-page .priority-card{
+  padding:.75mm!important;
+}
+.ofms-a4-pdf .sections-8-9-page .priority-card b{
+  font-size:7.7pt!important;
+}
+.ofms-a4-pdf .sections-8-9-page .priority-card span{
+  font-size:7pt!important;
+  line-height:1.04!important;
+}
+
+/* Modern Reports and System Logs recovery UI */
+#reports .report-list{
+  gap:16px!important;
+}
+#reports .modern-report-card{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  gap:20px!important;
+  align-items:stretch!important;
+  padding:0!important;
+  border-radius:24px!important;
+  overflow:hidden!important;
+  background:linear-gradient(135deg,rgba(255,255,255,.96),rgba(240,247,255,.9))!important;
+  border:1px solid rgba(147,197,253,.45)!important;
+  box-shadow:0 22px 60px rgba(15,23,42,.10)!important;
+}
+#reports .modern-report-card:before{
+  display:none!important;
+}
+.report-card-main{
+  padding:20px 22px!important;
+  min-width:0!important;
+}
+.report-type-badge{
+  display:inline-flex!important;
+  align-items:center!important;
+  width:max-content!important;
+  max-width:100%!important;
+  padding:6px 10px!important;
+  border-radius:999px!important;
+  background:#eaf4ff!important;
+  color:#075bb5!important;
+  font-size:11px!important;
+  font-weight:900!important;
+  margin-bottom:10px!important;
+}
+#reports .modern-report-card h3{
+  font-size:20px!important;
+  line-height:1.18!important;
+  margin:0 0 8px!important;
+  color:#0f172a!important;
+}
+#reports .modern-report-card p{
+  margin:0!important;
+  color:#64748b!important;
+  line-height:1.35!important;
+}
+.report-metrics-row{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:10px!important;
+  margin-top:16px!important;
+}
+.report-metrics-row span{
+  display:grid!important;
+  gap:2px!important;
+  padding:12px!important;
+  border-radius:16px!important;
+  background:rgba(255,255,255,.72)!important;
+  border:1px solid rgba(203,213,225,.75)!important;
+}
+.report-metrics-row b{
+  color:#0f172a!important;
+  font-size:20px!important;
+  line-height:1!important;
+}
+.report-metrics-row em{
+  color:#64748b!important;
+  font-size:11px!important;
+  font-style:normal!important;
+  font-weight:800!important;
+}
+#reports .modern-report-card .report-actions{
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+  gap:10px!important;
+  min-width:170px!important;
+  padding:20px!important;
+  background:rgba(15,23,42,.035)!important;
+  border-left:1px solid rgba(203,213,225,.7)!important;
+}
+#reports .modern-report-card .report-actions button{
+  width:100%!important;
+}
+.deleted-reports-panel{
+  margin-bottom:18px!important;
+}
+.deleted-reports-head{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  margin-bottom:12px!important;
+}
+.deleted-reports-head h3{
+  margin:0!important;
+  font-size:18px!important;
+}
+.deleted-reports-head p{
+  margin:3px 0 0!important;
+  color:#64748b!important;
+}
+.deleted-report-list{
+  display:grid!important;
+  gap:10px!important;
+}
+.deleted-empty{
+  padding:14px!important;
+  border:1px dashed #cbd5e1!important;
+  border-radius:16px!important;
+  color:#64748b!important;
+  background:#f8fafc!important;
+}
+.deleted-report-item{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  gap:12px!important;
+  align-items:center!important;
+  padding:14px!important;
+  border-radius:18px!important;
+  background:#fff!important;
+  border:1px solid #e2e8f0!important;
+}
+.deleted-report-item strong,
+.deleted-report-item span{
+  display:block!important;
+}
+.deleted-report-item strong{
+  color:#0f172a!important;
+  line-height:1.25!important;
+}
+.deleted-report-item span{
+  color:#64748b!important;
+  font-size:12px!important;
+  margin-top:3px!important;
+}
+.deleted-report-actions{
+  display:flex!important;
+  gap:8px!important;
+  flex-wrap:wrap!important;
+  justify-content:flex-end!important;
+}
+@media screen and (max-width:760px){
+  #reports .modern-report-card,
+  .deleted-report-item{
+    grid-template-columns:1fr!important;
+  }
+  #reports .modern-report-card .report-actions{
+    border-left:0!important;
+    border-top:1px solid rgba(203,213,225,.7)!important;
+    min-width:0!important;
+  }
+  .report-metrics-row{
+    grid-template-columns:1fr!important;
+  }
+}

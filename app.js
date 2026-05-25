@@ -13,6 +13,7 @@ let state = {
   currentUser: null,
   userRow: null,
   reports: [],
+  deletedReports: [],
   logs: [],
   trendFilter: 'all'
 };
@@ -170,9 +171,11 @@ async function log(action, details='', target_type='SYSTEM', target_id=''){
 }
 async function loadReports(){
   await supabaseReady();
-  const { data, error } = await db.from('reports').select('*').neq('status','Deleted').order('id', { ascending:false });
+  const { data, error } = await db.from('reports').select('*').order('id', { ascending:false });
   if(error) throw error;
-  state.reports = (data || []).map(toUiReport);
+  const rows = data || [];
+  state.reports = rows.filter(r=>String(r.status || '').toLowerCase() !== 'deleted').map(toUiReport);
+  state.deletedReports = rows.filter(r=>String(r.status || '').toLowerCase() === 'deleted').map(toUiReport);
 }
 async function loadLogs(){
   await supabaseReady();
@@ -1122,6 +1125,28 @@ async function deleteReport(id){
   finally{ clearBusy(); }
 }
 window.deleteReport = deleteReport;
+async function restoreDeletedReport(id){
+  if(!confirm('Restore this deleted report back to Reports?')) return;
+  setBusy('Restoring report...');
+  try{
+    await db.from('reports').update({status:'Active', deleted_at:null, modified_at:nowISO()}).eq('id', id);
+    await log('RESTORE','Restored deleted report','REPORT',id);
+    await loadReports(); renderAll(); toast('Report restored.');
+  }catch(err){ toast(err.message || 'Unable to restore report.'); }
+  finally{ clearBusy(); }
+}
+async function permanentlyDeleteReport(id){
+  if(!confirm('Permanently delete this report? This cannot be undone.')) return;
+  setBusy('Permanently deleting report...');
+  try{
+    await db.from('reports').delete().eq('id', id);
+    await log('PERMANENT_DELETE','Permanently deleted report','REPORT',id);
+    await loadReports(); renderAll(); toast('Report permanently deleted.');
+  }catch(err){ toast(err.message || 'Unable to permanently delete report.'); }
+  finally{ clearBusy(); }
+}
+window.restoreDeletedReport = restoreDeletedReport;
+window.permanentlyDeleteReport = permanentlyDeleteReport;
 function filteredReports(){
   const q=($('#reportSearch')?.value || '').trim().toLowerCase();
   if(!q) return state.reports;
@@ -1155,6 +1180,54 @@ function exportReportsCsv(){
 }
 const exportReportsBtn=$('#exportReportsBtn');
 if(exportReportsBtn){ exportReportsBtn.onclick=exportReportsCsv; }
+
+function renderReports(){
+  const el=$('#reportsList');
+  const reports=filteredReports();
+  if(!el) return;
+  if(!state.reports.length){ el.innerHTML='<div class="panel muted">No generated reports yet.</div>'; return; }
+  if(!reports.length){ el.innerHTML='<div class="panel muted">No report matched the current search.</div>'; return; }
+  el.innerHTML=reports.map(r=>`<article class="report-card apple-card modern-report-card">
+    <div class="report-card-main">
+      <div class="report-type-badge">${escapeHtml(surveyLabel(r.type))}</div>
+      <h3>${escapeHtml(r.title)}</h3>
+      <p>${escapeHtml(coverageFromReport(r))} • ${new Date(r.created).toLocaleString()}</p>
+      <div class="report-metrics-row">
+        <span><b>${r.responses}</b><em>Responses</em></span>
+        <span><b>${r.mean.toFixed(2)}</b><em>Mean / 5.00</em></span>
+        <span><b>${r.satisfaction.toFixed(2)}%</b><em>Satisfaction</em></span>
+      </div>
+    </div>
+    <div class="report-actions">
+      <button class="primary" onclick="openReport(${r.id})">View Report</button>
+      <button class="ghost" onclick="openSignatoryPrompt(${r.id})">Print PDF</button>
+      <button class="danger-btn" onclick="deleteReport(${r.id})">Delete</button>
+    </div>
+  </article>`).join('');
+}
+
+function renderDeletedReports(){
+  const el=$('#deletedReportsList');
+  if(!el) return;
+  const reports=state.deletedReports || [];
+  if(!reports.length){
+    el.innerHTML='<div class="deleted-empty">No deleted reports available for recovery.</div>';
+    return;
+  }
+  el.innerHTML=reports.map(r=>`<article class="deleted-report-item">
+    <div><strong>${escapeHtml(r.title)}</strong><span>${escapeHtml(surveyLabel(r.type))} • ${r.responses} responses • Deleted report ID ${r.id}</span></div>
+    <div class="deleted-report-actions">
+      <button class="ghost" onclick="restoreDeletedReport(${r.id})">Restore</button>
+      <button class="danger-btn" onclick="permanentlyDeleteReport(${r.id})">Delete Permanently</button>
+    </div>
+  </article>`).join('');
+}
+
+function renderLogs(){
+  renderDeletedReports();
+  const rows=$('#logRows'); if(!rows) return;
+  rows.innerHTML = (state.logs||[]).slice(0,80).map(l=>`<tr><td>${new Date(l.logged_at || l.time || Date.now()).toLocaleString()}</td><td>${escapeHtml(l.username || l.user || '')}</td><td>${escapeHtml(l.action || '')}</td><td>${escapeHtml(l.details || '')}</td></tr>`).join('') || '<tr><td colspan="4">No logs yet.</td></tr>';
+}
 
 function graphBar(values, title){
   const max=Math.max(...values.map(v=>Number(v.value)||0),1);
@@ -2431,8 +2504,9 @@ function reportDoc(r){
     html:`<section class="pdf-section-block signatory-block">${signatoryHtml()}</section>`
   };
   packPdfSections(sections1To4);
-  packPdfSections(sections5To8);
-  packPdfSections([...sections9To10, signatorySection]);
+  pages.push(ofmsPage(sections5To8.slice(0,3).map(s=>s.html).join(''), 'packed-page sections-5-7-page trend-page secondary-page profile-page'));
+  pages.push(ofmsPage([sections5To8[3], sections9To10[0]].map(s=>s.html).join(''), 'packed-page sections-8-9-page area-performance-page priority-page'));
+  packPdfSections([sections9To10[1], signatorySection]);
   return `<article class="report-doc ofms-a4-pdf exact-pdf">${pages.join('')}</article>`;
 }
 function renderMoreInsightCards(){
