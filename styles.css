@@ -5141,3 +5141,123 @@ body.pdf-preview-open #reportModal .preview-scroll-paper .ofms-pdf-page{
     grid-template-columns:1fr!important;
   }
 }
+
+/* Final PDF memo format: half-inch margins, Arial 13, screenshot-style subject block */
+.report-doc.ofms-a4-pdf,
+.report-doc.ofms-a4-pdf *{
+  font-family:Arial, Helvetica, sans-serif!important;
+}
+.report-doc.ofms-a4-pdf .ofms-pdf-page,
+.report-doc.exact-pdf .ofms-pdf-page{
+  padding:12.7mm!important;
+  grid-template-rows:16mm minmax(0,228mm) 18mm!important;
+  row-gap:2.8mm!important;
+}
+.report-doc.ofms-a4-pdf .ofms-pdf-body,
+.report-doc.exact-pdf .ofms-pdf-body,
+.ofms-a4-pdf .packed-page .ofms-pdf-body,
+.ofms-a4-pdf .single-section-page .ofms-pdf-body{
+  max-height:228mm!important;
+}
+.ofms-a4-pdf .ofms-pdf-header strong{
+  font-size:13pt!important;
+  line-height:1.08!important;
+}
+.ofms-a4-pdf .ofms-command-head{
+  font-size:13pt!important;
+  line-height:1.08!important;
+  margin:0 0 5mm!important;
+}
+.ofms-a4-pdf .ofms-memo-line{
+  display:flex!important;
+  justify-content:space-between!important;
+  align-items:flex-start!important;
+  font-size:13pt!important;
+  line-height:1.15!important;
+  margin:0 0 1.6mm!important;
+}
+.ofms-a4-pdf .ofms-memo{
+  display:grid!important;
+  grid-template-columns:26mm minmax(0,1fr)!important;
+  column-gap:5mm!important;
+  align-items:start!important;
+  font-size:13pt!important;
+  line-height:1.18!important;
+  margin:1.2mm 0!important;
+  text-align:left!important;
+}
+.ofms-a4-pdf .ofms-memo strong{
+  font-weight:900!important;
+}
+.ofms-a4-pdf .ofms-memo span{
+  display:block!important;
+  min-width:0!important;
+}
+.ofms-a4-pdf .pdf-section-block h2,
+.ofms-a4-pdf .packed-page .pdf-section-block h2,
+.ofms-a4-pdf .single-section-page .pdf-section-block h2{
+  font-size:13pt!important;
+  line-height:1.16!important;
+  margin:2mm 0 1.2mm!important;
+}
+.ofms-a4-pdf .pdf-section-block p,
+.ofms-a4-pdf .packed-page .pdf-section-block p,
+.ofms-a4-pdf .single-section-page .pdf-section-block p,
+.ofms-a4-pdf .interpretation p{
+  font-size:13pt!important;
+  line-height:1.24!important;
+  margin:1.1mm 0!important;
+}
+.ofms-a4-pdf .sections-8-9-page .priority-page p{
+  font-size:13pt!important;
+  line-height:1.22!important;
+  margin:1.1mm 0!important;
+}
+.ofms-a4-pdf .sections-5-7-page .interpretation p,
+.ofms-a4-pdf .sections-8-9-page .interpretation p{
+  font-size:11.4pt!important;
+  line-height:1.15!important;
+}
+.ofms-a4-pdf .sections-8-9-page .priority-page > p{
+  font-size:11.8pt!important;
+  line-height:1.18!important;
+}
+.ofms-a4-pdf .sections-8-9-page .priority-grid{
+  max-height:70mm!important;
+}
+.ofms-a4-pdf .sections-8-9-page .priority-card{
+  padding:1mm!important;
+}
+.ofms-a4-pdf .sections-8-9-page .priority-card b{
+  font-size:8.4pt!important;
+}
+.ofms-a4-pdf .sections-8-9-page .priority-card span{
+  font-size:7.6pt!important;
+}
+.ofms-a4-pdf .ofms-pdf-footer{
+  height:18mm!important;
+  max-height:18mm!important;
+}
+.ofms-a4-pdf .ofms-pdf-logos{
+  min-height:13mm!important;
+}
+.ofms-a4-pdf .ofms-pdf-logos img.strip{
+  width:42mm!important;
+  height:11mm!important;
+}
+.ofms-a4-pdf .ofms-pdf-logos img.atr{
+  width:20mm!important;
+  height:13mm!important;
+}
+@media print{
+  @page{size:A4;margin:0!important;}
+  body.printing-report .report-doc.ofms-a4-pdf .ofms-pdf-page,
+  body.printing-report .report-doc.exact-pdf .ofms-pdf-page{
+    padding:12.7mm!important;
+    grid-template-rows:16mm minmax(0,228mm) 18mm!important;
+    row-gap:2.8mm!important;
+  }
+  body.printing-report .ofms-a4-pdf .ofms-pdf-body{
+    max-height:228mm!important;
+  }
+}

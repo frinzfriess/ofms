@@ -905,6 +905,12 @@ function pdfDocumentTitle(r){
   const date = new Date(r.created || Date.now()).toISOString().slice(0,10);
   return [typeTitle, coverage, date].filter(Boolean).join(' - ');
 }
+function pdfSubjectTitle(r){
+  if(!r) return 'OFMS Survey Report';
+  return cleanPdfFilePart(r.title || (r.type === 'job'
+    ? 'OFMS Job Satisfaction and Work Experience Survey Report'
+    : 'OFMS Client Satisfaction Measurement Survey Report'));
+}
 
 function reportDateMs(r){ return new Date(r.created || r.uploaded_at || Date.now()).getTime(); }
 function latestReportByType(type){ return state.reports.filter(r=>r.type===type).sort((a,b)=>reportDateMs(b)-reportDateMs(a))[0] || null; }
@@ -2310,8 +2316,8 @@ function reportDoc(r){
   pages.push(ofmsPage(`
     <div class="ofms-command-head"><b>HEADQUARTERS PHILIPPINE ARMY<br>OFFICE OF THE ADJUTANT<br>Fort Andres Bonifacio, Taguig City</b></div>
     <div class="ofms-memo-line"><span>OADJ</span><span>${reportDate}</span></div>
-    <p class="ofms-memo"><strong>SUBJECT:</strong> ${escapeHtml(pdfTitle)}</p>
-    <p class="ofms-memo"><strong>TO:</strong> Adjutant, PA<br>Post<br>Attn: Admin</p>
+    <p class="ofms-memo"><strong>SUBJECT:</strong><span>${escapeHtml(pdfTitle)}</span></p>
+    <p class="ofms-memo"><strong>TO:</strong><span>Adjutant, PA<br>Post<br>Attn: Admin</span></p>
     <h2>1. Executive Summary</h2>${summaryCardsGraphOnly(r)}${reportFocusNote(r)}
     <h2>2. ${r.type==='job'?'Summative Job Satisfaction Interpretation':'Summative Client Satisfaction Interpretation'}</h2>
     ${narrativeParts.slice(0,4).map(x=>`<p>${escapeHtml(x)}</p>`).join('')}
@@ -2423,9 +2429,23 @@ function expandedSurveyOnlyNarrative(r){
     : `For client satisfaction, the report should be used to understand the connection between client profile, service type, service delivery experience, and the specific service areas that respondents rated higher or lower.`);
   return [...base, ...extra];
 }
+function priorityNarrative(r){
+  const lower=topLower(r,4);
+  const higher=topHigher(r,2);
+  const lowerText=lower.map(x=>`${cleanItemName(x.name)} (${Number(x.mean).toFixed(2)}/5.00)`).join(', ');
+  const higherText=higher.map(x=>`${cleanItemName(x.name)} (${Number(x.mean).toFixed(2)}/5.00)`).join(', ');
+  if(r.type==='job'){
+    return lower.length
+      ? `The priority areas show the work-experience items that received the lowest mean scores and therefore require the closest management review. ${lowerText} indicate that respondents may be experiencing concerns related to administrative burden, workload balance, clarity of procedures, career development, or the support systems connected to daily work. These scores should not be treated as isolated numbers; they should be compared with written remarks, assignment status, and years-in-service distribution to identify whether the concern is common across personnel groups or concentrated in a particular segment. The strength areas, especially ${higherText || 'the highest-rated items'}, show conditions that respondents rated positively and should be sustained while corrective action is planned for the lower-rated areas.`
+      : `No item fell into a clear low-priority group. The higher-rated areas, including ${higherText || 'the strongest survey items'}, should be sustained and monitored in succeeding survey periods to confirm that the favorable work experience remains consistent.`;
+  }
+  return lower.length
+    ? `The priority areas identify the service-experience items that received the lowest mean scores and should be reviewed first. ${lowerText} may point to concerns involving service access, timeliness, communication, clarity of requirements, responsiveness, or consistency of assistance. These areas should be read together with respondent profile and written remarks so that the office can determine whether the concern affects most clients or a specific service group. The strength areas, especially ${higherText || 'the highest-rated items'}, represent service practices that clients viewed positively and should be maintained while improvement action is prepared for the lower-rated areas.`
+    : `No service area fell into a clear low-priority group. The higher-rated areas, including ${higherText || 'the strongest survey items'}, should be sustained as good service practices and monitored in future reporting cycles.`;
+}
 function reportDoc(r){
   const reportDate=new Date(r.created).toLocaleDateString('en-PH',{day:'2-digit',month:'long',year:'numeric'});
-  const pdfTitle=pdfDocumentTitle(r);
+  const pdfTitle=pdfSubjectTitle(r);
   const profileObj=r.type==='job'?r.years:(Object.keys(r.gender||{}).length?r.gender:r.customerType);
   const profileTitle=r.type==='job'?'Years in Service':'Respondent Profile Distribution';
   const secondaryTitle=r.type==='job'?'Assignment Status':'Service Distribution';
@@ -2472,8 +2492,8 @@ function reportDoc(r){
   const introHtml=`
     <div class="ofms-command-head"><b>HEADQUARTERS PHILIPPINE ARMY<br>OFFICE OF THE ADJUTANT<br>Fort Andres Bonifacio, Taguig City</b></div>
     <div class="ofms-memo-line"><span>OADJ</span><span>${reportDate}</span></div>
-    <p class="ofms-memo"><strong>SUBJECT:</strong> ${escapeHtml(pdfTitle)}</p>
-    <p class="ofms-memo"><strong>TO:</strong> Adjutant, PA<br>Post<br>Attn: Admin</p>
+    <p class="ofms-memo"><strong>SUBJECT:</strong><span>${escapeHtml(pdfTitle)}</span></p>
+    <p class="ofms-memo"><strong>TO:</strong><span>Adjutant, PA<br>Post<br>Attn: Admin</span></p>
     <h2>1. Executive Summary</h2>
     ${summaryCardsGraphOnly(r)}
     ${satisfactionDataSummary(r)}
@@ -2493,7 +2513,7 @@ function reportDoc(r){
     sectionBlock('profile-page', `7. ${escapeHtml(profileTitle)}`, `${graphCounts(profileObj,profileTitle)}${interpretationBlock(`${profileTitle} Interpretation`,graphInterpretation(profileObj,profileTitle))}`, 16+graphMm(profileCount)+pdfTextMm(graphInterpretation(profileObj,profileTitle))),
     sectionBlock('area-performance-page', `8. ${r.type==='job'?'Job Satisfaction Area Performance':'Client Satisfaction Area Performance'}`, `${graphItems(r)}${interpretationBlock('Survey Area Interpretation',itemText)}`, 16+graphMm(areaCount, areaCount>12)+pdfTextMm(itemText))
   ];
-  const priorityText='The priority graph separates lower-scoring areas from stronger areas. Lower-rated areas should be read as improvement points, while stronger areas may be sustained and used as reference points for future survey periods.';
+  const priorityText=priorityNarrative(r);
   const sections9To10=[
     sectionBlock('priority-page', '9. Priority and Strength Areas', `${priorityGraphHtml(r)}<p>${priorityText}</p>`, 18+priorityCount*15+pdfTextMm(priorityText)),
     sectionBlock('remarks-page', '10. Notable Qualitative Remarks', notableRemarksHtml(r, usableRemarks, 0), 14+Math.max(1,usableRemarks.length)*21)
