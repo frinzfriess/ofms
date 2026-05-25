@@ -2369,10 +2369,10 @@ function reportDoc(r){
   const trendCount=(r.trend||[]).length || 1;
   const areaCount=(r.items||[]).length;
   const priorityCount=Math.min((topLower(r,4).length + topHigher(r,2).length), 6);
-  const pdfTextMm=(text)=>Math.max(4, Math.ceil(String(text||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().length/120)*3.2);
+  const pdfTextMm=(text)=>Math.max(6, Math.ceil(String(text||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().length/95)*5);
   const pdfParaMm=(arr)=>arr.reduce((sum,x)=>sum+pdfTextMm(x),0);
-  const graphMm=(count, split=false)=>split ? 10 + Math.ceil(Math.max(1,count)/2)*2.15 : 10 + Math.max(1,count)*2.3;
-  const PDF_BODY_SAFE_MM=205;
+  const graphMm=(count, split=false)=>split ? 16 + Math.ceil(Math.max(1,count)/2)*3.6 : 16 + Math.max(1,count)*3.8;
+  const PDF_BODY_SAFE_MM=196;
   const sectionBlock=(cls, title, body, estimate)=>({
     cls,
     estimate,
@@ -2406,28 +2406,28 @@ function reportDoc(r){
     ${satisfactionDataSummary(r)}
     ${distinctSurveyBasis(r)}
   `;
-  const introEstimate=66+pdfTextMm(satisfactionMeaning(r))+pdfTextMm(r.type==='job'?'internal personnel experience survey work environment supervision recognition communication workload role experience resources personnel profile assignment years-in-service distributions':'client service experience survey service access responsiveness timeliness communication clarity assistance courtesy reliability client service profile');
+  const introEstimate=82+pdfTextMm(satisfactionMeaning(r))+pdfTextMm(r.type==='job'?'internal personnel experience survey work environment supervision recognition communication workload role experience resources personnel profile assignment years-in-service distributions':'client service experience survey service access responsiveness timeliness communication clarity assistance courtesy reliability client service profile');
   const sections1To4=[
     {cls:'intro-page', estimate:introEstimate, html:`<section class="pdf-section-block intro-page">${introHtml}</section>`},
-    sectionBlock('summative-page', `2. ${summativeTitle}`, `${narrativeParts.slice(0,2).map(x=>`<p>${escapeHtml(x)}</p>`).join('')}${reportFocusNote(r)}`, 22+pdfParaMm(narrativeParts.slice(0,2))),
-    sectionBlock('analysis-page', '3. Expanded Satisfaction Analysis', narrativeParts.slice(2,6).map(x=>`<p>${escapeHtml(x)}</p>`).join(''), 8+pdfParaMm(narrativeParts.slice(2,6))),
-    sectionBlock('reading-points-page', '4. Key Survey Reading Points', `${surveyAreaSummaryHtml(r)}${narrativeParts.slice(6,9).map(x=>`<p>${escapeHtml(x)}</p>`).join('')}`, 28+pdfParaMm(narrativeParts.slice(6,9)))
+    sectionBlock('summative-page', `2. ${summativeTitle}`, `${narrativeParts.slice(0,2).map(x=>`<p>${escapeHtml(x)}</p>`).join('')}${reportFocusNote(r)}`, 26+pdfParaMm(narrativeParts.slice(0,2))),
+    sectionBlock('analysis-page', '3. Expanded Satisfaction Analysis', narrativeParts.slice(2,6).map(x=>`<p>${escapeHtml(x)}</p>`).join(''), 12+pdfParaMm(narrativeParts.slice(2,6))),
+    sectionBlock('reading-points-page', '4. Key Survey Reading Points', `${surveyAreaSummaryHtml(r)}${narrativeParts.slice(6,9).map(x=>`<p>${escapeHtml(x)}</p>`).join('')}`, 34+pdfParaMm(narrativeParts.slice(6,9)))
   ];
   const trendText=trendInterpretation(r).replace(/uploaded worksheet|worksheet|excel|xlsx/gi,'survey data');
   const sections5To8=[
-    sectionBlock('trend-page', '5. Survey Trend Analysis', `${trendGraphHtml(r)}${interpretationBlock('Trend Interpretation',trendText)}`, 11+graphMm(trendCount)+pdfTextMm(trendText)),
-    sectionBlock('secondary-page', `6. ${escapeHtml(secondaryTitle)}`, `${graphCounts(secondaryObj,secondaryTitle)}${interpretationBlock(`${secondaryTitle} Interpretation`,graphInterpretation(secondaryObj,secondaryTitle))}`, 11+graphMm(secondaryCount)+pdfTextMm(graphInterpretation(secondaryObj,secondaryTitle))),
-    sectionBlock('profile-page', `7. ${escapeHtml(profileTitle)}`, `${graphCounts(profileObj,profileTitle)}${interpretationBlock(`${profileTitle} Interpretation`,graphInterpretation(profileObj,profileTitle))}`, 11+graphMm(profileCount)+pdfTextMm(graphInterpretation(profileObj,profileTitle))),
-    sectionBlock('area-performance-page', `8. ${r.type==='job'?'Job Satisfaction Area Performance':'Client Satisfaction Area Performance'}`, `${graphItems(r)}${interpretationBlock('Survey Area Interpretation',itemText)}`, 11+graphMm(areaCount, areaCount>12)+pdfTextMm(itemText))
+    sectionBlock('trend-page', '5. Survey Trend Analysis', `${trendGraphHtml(r)}${interpretationBlock('Trend Interpretation',trendText)}`, 16+graphMm(trendCount)+pdfTextMm(trendText)),
+    sectionBlock('secondary-page', `6. ${escapeHtml(secondaryTitle)}`, `${graphCounts(secondaryObj,secondaryTitle)}${interpretationBlock(`${secondaryTitle} Interpretation`,graphInterpretation(secondaryObj,secondaryTitle))}`, 16+graphMm(secondaryCount)+pdfTextMm(graphInterpretation(secondaryObj,secondaryTitle))),
+    sectionBlock('profile-page', `7. ${escapeHtml(profileTitle)}`, `${graphCounts(profileObj,profileTitle)}${interpretationBlock(`${profileTitle} Interpretation`,graphInterpretation(profileObj,profileTitle))}`, 16+graphMm(profileCount)+pdfTextMm(graphInterpretation(profileObj,profileTitle))),
+    sectionBlock('area-performance-page', `8. ${r.type==='job'?'Job Satisfaction Area Performance':'Client Satisfaction Area Performance'}`, `${graphItems(r)}${interpretationBlock('Survey Area Interpretation',itemText)}`, 16+graphMm(areaCount, areaCount>12)+pdfTextMm(itemText))
   ];
   const priorityText='The priority graph separates lower-scoring areas from stronger areas. Lower-rated areas should be read as improvement points, while stronger areas may be sustained and used as reference points for future survey periods.';
   const sections9To10=[
-    sectionBlock('priority-page', '9. Priority and Strength Areas', `${priorityGraphHtml(r)}<p>${priorityText}</p>`, 12+priorityCount*12+pdfTextMm(priorityText)),
-    sectionBlock('remarks-page', '10. Notable Qualitative Remarks', notableRemarksHtml(r, usableRemarks, 0), 10+Math.max(1,usableRemarks.length)*18)
+    sectionBlock('priority-page', '9. Priority and Strength Areas', `${priorityGraphHtml(r)}<p>${priorityText}</p>`, 18+priorityCount*15+pdfTextMm(priorityText)),
+    sectionBlock('remarks-page', '10. Notable Qualitative Remarks', notableRemarksHtml(r, usableRemarks, 0), 14+Math.max(1,usableRemarks.length)*21)
   ];
   const signatorySection={
     cls:'signatory-section-page',
-    estimate:42,
+    estimate:46,
     html:`<section class="pdf-section-block signatory-block">${signatoryHtml()}</section>`
   };
   packPdfSections(sections1To4);
